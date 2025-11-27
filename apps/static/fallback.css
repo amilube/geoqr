@@ -1,0 +1,157 @@
+/* fallback.css - Estilos de respaldo cuando los CDN no están disponibles */
+/* Este archivo proporciona estilos básicos si Tailwind CSS no se carga */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    background-color: #F0F2F5;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Variables de color */
+:root {
+    --color-primary: #3F51B5;
+    --color-accent: #FF5722;
+    --color-background: #F0F2F5;
+}
+
+/* Header */
+header {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 1.25rem 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 0.5rem 0;
+}
+
+header p {
+    text-align: center;
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+/* Main content */
+main {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* Cards */
+.bg-white {
+    background-color: white;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.p-6 {
+    padding: 1.5rem;
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
+
+/* Buttons */
+button {
+    font-family: inherit;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+.bg-accent {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+.bg-primary {
+    background-color: var(--color-primary);
+    color: white;
+}
+
+/* Video container */
+#video-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#qr-video {
+    width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    background-color: #000;
+}
+
+/* Utility classes */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.w-full {
+    width: 100%;
+}
+
+/* Lists */
+ol {
+    padding-left: 1.5rem;
+}
+
+li {
+    margin-bottom: 0.5rem;
+    color: #374151;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: #6B7280;
+    font-size: 0.875rem;
+}
+
+/* Responsive */
+@media (min-width: 640px) {
+    .sm\:w-auto {
+        width: auto;
+    }
+}

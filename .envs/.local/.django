@@ -1,0 +1,9 @@
+# General
+# ------------------------------------------------------------------------------
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+
+# Web Push Notifications
+WP_PRIVATE_KEY=Vl98RanIljtxgD80ev-GcEUTfoXd7U7llQlbj2WwORg
+WP_PUBLIC_KEY=BA4-anab6eNTbjhP0_SAwpc2DN3FBkn4CtShJwzuyxFfmsOcisaA4pqG6HpCnfQ_3yI5K86RGOP0pUHhAp7j1NE
+WP_VAPID_SUBJECT="mailto:amilcarben@gmail.com"

@@ -1,0 +1,65 @@
+{% load allauth %}
+{% load crispy_forms_tags %}
+
+{% if attrs.type == "textarea" %}
+  <div class="mb-4">
+    <label for="{{ attrs.id }}" class="block text-sm font-medium text-gray-700">
+      {% slot label %}
+    {% endslot %}
+    </label>
+  </div>
+  <textarea {% if attrs.required %}required{% endif %}
+            {% if attrs.rows %}rows="{{ attrs.rows }}"{% endif %}
+            {% if attrs.disabled %}disabled{% endif %}
+            {% if attrs.readonly %}readonly{% endif %}
+            {% if attrs.checked %}checked{% endif %}
+            {% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+            {% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+            {% if attrs.placeholder %}placeholder="{{ attrs.placeholder }}"{% endif %}
+            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">{% slot value %}{% endslot %}</textarea>
+</div>
+{% elif attrs.type == "radio" %}
+<div class="mb-4">
+  <div>
+    <div class="flex items-center">
+      <input {% if attrs.required %}required{% endif %}
+             {% if attrs.disabled %}disabled{% endif %}
+             {% if attrs.readonly %}readonly{% endif %}
+             {% if attrs.checked %}checked{% endif %}
+             {% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+             {% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+             {% if attrs.placeholder %}placeholder="{{ attrs.placeholder }}"{% endif %}
+             {% if attrs.autocomplete %}autocomplete="{{ attrs.autocomplete }}"{% endif %}
+             value="{{ attrs.value|default_if_none:"" }}"
+             type="{{ attrs.type }}" class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+      <label class="ml-3 block text-sm font-medium text-gray-700" for="{{ attrs.id }}">
+        {% slot label %}
+      {% endslot %}
+      </label>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="mb-4">
+  <label for="{{ attrs.id }}" class="block text-sm font-medium text-gray-700">
+    {% slot label %}
+  {% endslot %}
+  </label>
+</div>
+<div>
+  <input {% if attrs.required %}required{% endif %}
+         {% if attrs.disabled %}disabled{% endif %}
+         {% if attrs.readonly %}readonly{% endif %}
+         {% if attrs.checked %}checked{% endif %}
+         {% if attrs.name %}name="{{ attrs.name }}"{% endif %}
+         {% if attrs.id %}id="{{ attrs.id }}"{% endif %}
+         {% if attrs.placeholder %}placeholder="{{ attrs.placeholder }}"{% endif %}
+         {% if attrs.autocomplete %}autocomplete="{{ attrs.autocomplete }}"{% endif %}
+         value="{{ attrs.value|default_if_none:"" }}"
+         type="{{ attrs.type }}"
+         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" />
+</div>
+{% endif %}
+{% if slots.help_text %}
+  <div class="mt-2 text-sm text-gray-500">{% slot help_text %}{% endslot %}</div>
+{% endif %}

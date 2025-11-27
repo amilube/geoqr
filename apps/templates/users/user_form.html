@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}
+  {{ user.name }}
+{% endblock title %}
+{% block content %}
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">
+    {{ user.name }}
+  </h1>
+  <form class="max-w-2xl"
+        method="post"
+        action="{% url 'users:update' %}">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="mt-6 flex gap-3">
+      <button type="submit" class="inline-flex items-center px-6 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition font-medium">Update</button>
+    </div>
+  </form>
+{% endblock content %}
