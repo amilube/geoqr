@@ -17,14 +17,14 @@
   <link rel="icon" href="{% static 'icons/icon.svg' %}" />
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   {% block css %}
   <!-- Your stuff: Third-party CSS libraries go here -->
   {% compress css %}
     <link href="{% static 'css/project.css' %}" rel="stylesheet" %}
   {% endcompress %}
   {% endblock css %}
-  
+
   {% block javascript %}
   <!-- Your stuff: Third-party javascript libraries go here -->
   <!-- Alpine.js for UI interactions -->
@@ -87,7 +87,7 @@
       </div>
     </div>
   </nav>
-  
+
   <!-- Main Content -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     {% if messages %}
@@ -108,9 +108,9 @@
       {% endblock content %}
     {% endblock main %}
   </div>
-  
+
   {% endblock body %}
-  
+
   {% block modal %}
   {% endblock modal %}
   {% block inline_javascript %}
@@ -134,7 +134,7 @@
         const mobileMenu = document.getElementById('mobile-menu');
         const hamburgerOpen = document.getElementById('hamburger-open');
         const hamburgerClose = document.getElementById('hamburger-close');
-        
+
         if (mobileMenuButton && mobileMenu) {
           mobileMenuButton.addEventListener('click', function() {
             const isHidden = mobileMenu.classList.contains('hidden');
