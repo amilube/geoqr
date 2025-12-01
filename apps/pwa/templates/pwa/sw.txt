@@ -1,0 +1,472 @@
+{% load static %}
+// sw.js - Service Worker para PWA
+// {% now "Y-m-d H:i:s" %}
+// Permite funcionamiento offline y caché de recursos
+
+const CACHE_NAME = '{{ cache_name|default:"geoqr-v2" }}';
+const DEBUG = {{ debug|lower }};
+
+/**
+ * Maneja errores de solicitud (offline, servidor caído, etc.)
+ * @param {Request} request - La solicitud HTTP que falló
+ * @returns {Promise<Response>} - Respuesta cacheada o página de error
+ */
+function handleRequestError(request) {
+  // Si es una solicitud de documento (página HTML)
+  if (request.destination === 'document') {
+    // Verificar si es verdaderamente offline (sin conexión de red)
+    if (!navigator.onLine) {
+      if (DEBUG) console.log('Service Worker: Usuario offline');
+      
+      // Intentar obtener página offline en caché
+      return caches.match('/offline.html')
+        .then(cachedPage => {
+          if (cachedPage) {
+            notifyClients({
+              type: 'OFFLINE',
+              message: 'No hay conexión a internet. Mostrando página en caché.'
+            });
+            return cachedPage;
+          }
+          
+          // Si no está en caché, retornar una página offline inline
+          return getOfflinePageResponse();
+        });
+    } else {
+      // Hay conexión pero no se pudo alcanzar el servidor
+      if (DEBUG) console.log('Service Worker: Servidor no disponible (hay conexión)');
+      
+      // Intentar obtener página de error en caché
+      return caches.match('/server-error.html')
+        .then(errorPage => {
+          if (errorPage) {
+            notifyClients({
+              type: 'SERVER_ERROR',
+              message: 'El servidor no está disponible. Mostrando página en caché.'
+            });
+            return errorPage;
+          }
+          
+          // Si no está en caché, retornar una página de error inline
+          return getServerErrorPageResponse();
+        });
+    }
+  }
+  
+  // Para otros tipos de solicitud (API, recursos), retornar undefined
+  return Promise.resolve(undefined);
+}
+
+/**
+ * Retorna una página HTML de error offline como Response
+ * Esta es una fallback en caso de que la página no esté en caché
+ * @returns {Response} - Página HTML de error
+ */
+function getOfflinePageResponse() {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <title>Sin conexión</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                background: linear-gradient(to bottom right, #0f172a, #1e293b);
+                color: #fff;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .container {
+                max-width: 28rem;
+                text-align: center;
+            }
+            .icon { font-size: 60px; margin-bottom: 20px; }
+            h1 { font-size: 32px; font-weight: bold; margin-bottom: 12px; color: #f87171; }
+            p { color: #cbd5e1; margin-bottom: 20px; }
+            .info {
+                background: rgba(71, 85, 105, 0.3);
+                border: 1px solid #475569;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 32px;
+            }
+            .btn {
+                background: #3b82f6;
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                cursor: pointer;
+                margin: 8px;
+            }
+            .btn:hover { background: #2563eb; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">📡</div>
+            <h1>Sin conexión</h1>
+            <p>No tienes conexión a internet en este momento.</p>
+            <div class="info">
+                <p style="font-size: 14px; color: #94a3b8;">
+                    Verifica tu conexión de red e intenta de nuevo.
+                </p>
+            </div>
+            <button class="btn" onclick="location.reload()">Reintentar</button>
+            <button class="btn" style="background: #475569;" onclick="window.location='/'; ">Ir a inicio</button>
+        </div>
+        <script>
+            window.addEventListener('online', () => {
+                console.log('Conexión restaurada');
+                setTimeout(() => location.reload(), 1000);
+            });
+        </script>
+    </body>
+    </html>
+  `;
+  
+  return new Response(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+}
+
+/**
+ * Retorna una página HTML de error del servidor como Response
+ * Esta es una fallback en caso de que la página no esté en caché
+ * @returns {Response} - Página HTML de error
+ */
+function getServerErrorPageResponse() {
+  const html = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <title>Error del servidor</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                background: linear-gradient(to bottom right, #0f172a, #1e293b);
+                color: #fff;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+            }
+            .container {
+                max-width: 28rem;
+                text-align: center;
+            }
+            .icon { font-size: 60px; margin-bottom: 20px; }
+            h1 { font-size: 32px; font-weight: bold; margin-bottom: 12px; color: #fbbf24; }
+            p { color: #cbd5e1; margin-bottom: 20px; }
+            .info {
+                background: rgba(71, 85, 105, 0.3);
+                border: 1px solid #475569;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 32px;
+            }
+            .btn {
+                background: #eab308;
+                color: #000;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                margin: 8px;
+            }
+            .btn:hover { background: #facc15; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">⚠️</div>
+            <h1>Error del servidor</h1>
+            <p>El servidor no está disponible en este momento.</p>
+            <div class="info">
+                <p style="font-size: 14px; color: #94a3b8;">
+                    Estamos trabajando para resolver el problema. Intenta más tarde.
+                </p>
+            </div>
+            <button class="btn" onclick="location.reload()">Reintentar</button>
+            <button class="btn" style="background: #475569; color: white;" onclick="window.location='/'; ">Ir a inicio</button>
+        </div>
+        <script>
+            // Reintento automático cada 30 segundos
+            let retryCount = 0;
+            const maxRetries = 10;
+            setInterval(async () => {
+                if (retryCount >= maxRetries) return;
+                retryCount++;
+                try {
+                    const resp = await fetch('/', { method: 'HEAD' });
+                    if (resp.ok) location.reload();
+                } catch (e) {}
+            }, 30000);
+        </script>
+    </body>
+    </html>
+  `;
+  
+  return new Response(html, {
+    status: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+  });
+}
+
+/**
+ * Notifica a todos los clientes (ventanas/tabs) sobre eventos del Service Worker
+ * @param {Object} message - Objeto con información del evento
+ */
+function notifyClients(message) {
+  self.clients.matchAll({ type: 'window' }).then(clients => {
+    clients.forEach(client => {
+      client.postMessage({
+        from: 'ServiceWorker',
+        timestamp: new Date().toISOString(),
+        ...message
+      });
+    });
+  }).catch(err => {
+    if (DEBUG) console.warn('Service Worker: Error al notificar clientes', err);
+  });
+}
+
+
+const urlsToCache = [
+  // Páginas principales
+  '/',
+  
+  // Páginas de error (críticas para funcionar offline)
+  '/offline.html',
+  '/server-error.html',
+  
+  // Archivos estáticos
+  '{% static "manifest.json" %}',
+  '{% static "fallback.css" %}',
+  '{% static "app.js" %}',
+  
+  // Fuentes y librerías externas
+  'https://cdn.tailwindcss.com',
+  'https://unpkg.com/htmx.org@2.0.0',
+  'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
+  'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
+];
+
+// Instalación del Service Worker
+self.addEventListener('install', (event) => {
+  if (DEBUG) console.log('Service Worker: Instalando...');
+  
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      if (DEBUG) console.log('Service Worker: Intentando cachear archivos');
+      
+      const promises = urlsToCache.map(async (url) => {
+        try {
+          const req = new Request(url, { mode: 'no-cors' });
+          const response = await fetch(req);
+          if (response) {
+            await cache.put(url, response.clone());
+            if (DEBUG) console.log('Service Worker: Cacheado', url);
+          }
+        } catch (err) {
+          console.warn('Service Worker: no se pudo cachear', url, err);
+        }
+      });
+      
+      await Promise.all(promises);
+    })
+  );
+  
+  self.skipWaiting();
+});
+
+// Activación del Service Worker
+self.addEventListener('activate', (event) => {
+  if (DEBUG) console.log('Service Worker: Activando...');
+  
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          // Eliminar cachés antiguas
+          if (cacheName !== CACHE_NAME) {
+            if (DEBUG) console.log('Service Worker: Eliminando caché antigua:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  
+  return self.clients.claim();
+});
+
+// Interceptar peticiones de red
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // No cachear peticiones no-GET
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  
+  // No cachear peticiones a otros dominios (excepto APIs específicas)
+  if (url.origin !== self.location.origin) {
+    // Permitir algunos CDNs específicos
+    if (!['cdn.tailwindcss.com', 'unpkg.com', 'fonts.googleapis.com', 'googleapis.com'].some(host => url.hostname.includes(host))) {
+      return;
+    }
+  }
+  
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Si está en caché, devolver la versión cacheada
+        if (response) {
+          return response;
+        }
+        
+        // Si no está en caché, hacer la petición de red
+        return fetch(event.request)
+          .then((response) => {
+            // Manejo de errores HTTP del servidor (5xx, 4xx, etc.)
+            if (!response) {
+              if (DEBUG) console.warn('Service Worker: Response null', event.request.url);
+              return handleRequestError(event.request);
+            }
+            
+            // Si es error 5xx (servidor caído), mostrar página de error del servidor
+            if (response.status >= 500) {
+              if (DEBUG) console.warn('Service Worker: Error del servidor', response.status, event.request.url);
+              if (event.request.destination === 'document') {
+                return caches.match('/server-error.html')
+                  .then(cachedPage => cachedPage || caches.match('/'))
+                  .then(fallback => {
+                    // Notificar al cliente sobre el error del servidor
+                    notifyClients({
+                      type: 'SERVER_ERROR',
+                      status: response.status,
+                      message: 'El servidor no está disponible en este momento. Mostrando contenido en caché.'
+                    });
+                    return fallback;
+                  });
+              }
+              return response;
+            }
+            
+            // Si es error 4xx (página no encontrada, etc.), retornar la respuesta tal cual
+            if (response.status >= 400) {
+              if (DEBUG) console.warn('Service Worker: Error del cliente', response.status, event.request.url);
+              return response;
+            }
+            
+            // Verificar que la respuesta es válida (status 200 y tipo correcto)
+            if (response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors' && response.type !== 'opaque')) {
+              if (DEBUG) console.warn('Service Worker: Response no cacheble', response.status, response.type);
+              return response;
+            }
+            
+            // Clonar la respuesta porque es un stream que solo puede leerse una vez
+            const responseToCache = response.clone();
+            
+            // Agregar la respuesta al caché para futuras peticiones (actualizar caché)
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+                if (DEBUG) console.log('Service Worker: Actualizado en caché', event.request.url);
+              })
+              .catch(err => {
+                if (DEBUG) console.warn('Service Worker: Error al cachear', err);
+              });
+            
+            return response;
+          })
+          .catch((error) => {
+            // Error de red: no hay conexión o la solicitud fue bloqueada
+            if (DEBUG) console.error('Service Worker: Error de red', error, event.request.url);
+            return handleRequestError(event.request);
+          });
+      })
+  );
+});
+
+// Sincronización en segundo plano
+self.addEventListener('sync', (event) => {
+  if (DEBUG) console.log('Service Worker: Sincronización en segundo plano', event.tag);
+  
+  if (event.tag === 'sync-data') {
+    event.waitUntil(
+      Promise.resolve()
+    );
+  }
+});
+
+// Notificaciones push
+self.addEventListener('push', (event) => {
+  if (DEBUG) console.log('Service Worker: Notificación push recibida');
+
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    console.error('Service Worker: Error al parsear JSON', e);
+  }
+
+  const title = data.title || 'Notificación';
+  
+  const options = {
+    body: data.body || 'Nueva notificación',
+    icon: data.icon || '{% static "icons/icon-192x192.png" %}',
+    badge: data.badge || '{% static "icons/icon-72x72.png" %}',
+    image: data.image || undefined,
+    data: data.data || {},
+    vibrate: data.vibrate || [200, 100, 200],
+    actions: data.actions || []
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(title, options)
+  );
+});
+
+// Click en notificaciones
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      // Buscar si ya hay una ventana abierta con esa URL
+      for (let client of clientList) {
+        if (client.url === url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Si no existe, abrir una nueva
+      if (clients.openWindow) {
+        return clients.openWindow(url);
+      }
+    })
+  );
+});
+
+// Cierre de notificaciones
+self.addEventListener('notificationclose', (event) => {
+  if (DEBUG) console.log('Service Worker: Notificación cerrada', event.notification);
+});
