@@ -1,4 +1,10 @@
 /* These styles are generated from project.scss. */
+body {
+  font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", system-ui, Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    "Helvetica Neue", sans-serif;
+  overscroll-behavior-y: contain;
+}
 
 .alert-debug {
   color: black;

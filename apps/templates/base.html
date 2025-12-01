@@ -1,4 +1,5 @@
-{% load static i18n compress%}<!DOCTYPE html>
+{% load static i18n compress %}
+<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}">
   <head>
@@ -16,7 +17,18 @@
         content="Amilcar Benitez Pietroboni en Dumanity" />
   <link rel="icon" href="{% static 'icons/icon.svg' %}" />
   <!-- TailwindCSS CDN -->
+
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- HTMX v2 desde CDN -->
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+
+  <!-- html5-qrcode Library para escaneo de códigos QR -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- Manifest para PWA -->
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+
 
   {% block css %}
   <!-- Your stuff: Third-party CSS libraries go here -->
