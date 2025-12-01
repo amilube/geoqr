@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <title>Error del servidor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .bounce-animation {
+            animation: bounce 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 text-white min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-md w-full text-center">
+        <!-- Icono de error del servidor -->
+        <div class="mb-8">
+            <svg class="w-24 h-24 mx-auto text-yellow-400 mb-4 bounce-animation" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+
+        <!-- Título y descripción -->
+        <h1 class="text-4xl font-bold mb-3 text-yellow-400">Error del servidor</h1>
+        <p class="text-slate-300 text-lg mb-6">
+            El servidor no está disponible en este momento.
+        </p>
+        <p class="text-slate-400 text-sm mb-8">
+            Estamos trabajando para resolver el problema. Por favor, intenta más tarde.
+        </p>
+
+        <!-- Estado del servidor -->
+        <div class="bg-slate-700 bg-opacity-50 rounded-lg p-4 mb-8 border border-slate-600">
+            <div class="flex items-center justify-center space-x-2 mb-2">
+                <div class="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span class="text-sm text-slate-300">Esperando disponibilidad del servidor...</span>
+            </div>
+            <p class="text-xs text-slate-500">
+                Reintenaremos automáticamente cada 30 segundos
+            </p>
+        </div>
+
+        <!-- Contenido en caché disponible -->
+        <div class="bg-green-900 bg-opacity-40 rounded-lg p-4 border border-green-700 mb-8">
+            <svg class="w-5 h-5 mx-auto text-green-400 mb-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <p class="text-sm text-green-300">
+                ✅ Mostrando contenido en caché
+            </p>
+            <p class="text-xs text-green-400 mt-1">
+                Tus datos están seguros
+            </p>
+        </div>
+
+        <!-- Mensajes informativos -->
+        <div class="bg-slate-800 rounded-lg p-4 mb-8 border border-slate-600 text-left space-y-2">
+            <p class="text-sm text-slate-200">
+                <span class="font-semibold text-slate-300">Posibles causas:</span>
+            </p>
+            <ul class="text-xs text-slate-400 space-y-1 ml-4">
+                <li>• Mantenimiento del servidor</li>
+                <li>• Problema temporal en la infraestructura</li>
+                <li>• Carga excesiva del servidor</li>
+            </ul>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="space-y-3">
+            <button 
+                id="retry-btn"
+                onclick="retryConnection()"
+                class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Reintentar ahora</span>
+            </button>
+            <button 
+                id="home-btn"
+                onclick="goHome()"
+                class="w-full bg-slate-700 hover:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center space-x-2"
+            >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 4h4" />
+                </svg>
+                <span>Ir a inicio</span>
+            </button>
+        </div>
+
+        <!-- Info adicional -->
+        <div class="mt-8 pt-6 border-t border-slate-700">
+            <p class="text-xs text-slate-500 mb-2">
+                ℹ️ Reintentos automáticos cada 30 segundos
+            </p>
+            <p class="text-xs text-slate-600">
+                Si el problema persiste, <a href="https://status.example.com" target="_blank" class="text-blue-400 hover:text-blue-300">consulta el estado del sistema</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let retryCount = 0;
+        const MAX_RETRIES = 10;
+
+        /**
+         * Intenta reconectar con el servidor
+         */
+        async function retryConnection() {
+            const btn = document.getElementById('retry-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="animate-spin">⟳</span> Intentando...';
+
+            try {
+                const response = await fetch('/', { method: 'HEAD' });
+                if (response.ok) {
+                    console.log('[server-error.html] Servidor disponible');
+                    // Pequeña pausa antes de recargar
+                    setTimeout(() => {
+                        location.reload();
+                    }, 500);
+                } else {
+                    throw new Error(`Status: ${response.status}`);
+                }
+            } catch (error) {
+                console.warn('[server-error.html] Servidor aún no disponible:', error);
+                btn.disabled = false;
+                btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg><span>Reintentar ahora</span>';
+                showNotification('El servidor aún no está disponible', 'error');
+            }
+        }
+
+        /**
+         * Navega a la página de inicio
+         */
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        /**
+         * Muestra notificaciones al usuario
+         */
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white text-sm ${
+                type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        /**
+         * Reintento automático periódico
+         */
+        function setupAutoRetry() {
+            const interval = setInterval(async () => {
+                if (retryCount >= MAX_RETRIES) {
+                    clearInterval(interval);
+                    console.log('[server-error.html] Máximo de reintentos alcanzado');
+                    return;
+                }
+
+                retryCount++;
+                console.log(`[server-error.html] Reintento automático #${retryCount}`);
+
+                try {
+                    const response = await fetch('/', { method: 'HEAD' });
+                    if (response.ok) {
+                        clearInterval(interval);
+                        console.log('[server-error.html] Servidor disponible - recargando');
+                        location.reload();
+                    }
+                } catch (error) {
+                    console.log(`[server-error.html] Reintento #${retryCount} fallido`);
+                }
+            }, 30000); // 30 segundos
+        }
+
+        // Inicializar
+        console.log('[server-error.html] Página de error del servidor cargada');
+        setupAutoRetry();
+
+        // Escuchar cambios en la conexión
+        window.addEventListener('online', () => {
+            console.log('[server-error.html] Conexión de red restaurada');
+            retryConnection();
+        });
+    </script>
+</body>
+</html>
