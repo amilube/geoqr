@@ -12,6 +12,7 @@ Welcome to GeoQR's documentation!
 
    howto
    users
+   pwa
 
 
 
