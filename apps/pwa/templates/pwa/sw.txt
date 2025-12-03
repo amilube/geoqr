@@ -250,7 +250,7 @@ function notifyClients(message) {
 
 const urlsToCache = [
   // Páginas principales
-  '/',
+  // '/',
   
   // Páginas de error (críticas para funcionar offline)
   '/offline.html',
