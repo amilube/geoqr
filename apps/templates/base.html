@@ -68,11 +68,9 @@
         </div>
         <!-- Desktop Navigation -->
         <div class="hidden md:flex md:items-center md:space-x-8">
-          <a class="text-gray-700 hover:text-gray-900 transition" href="{% url 'home' %}">Home</a>
-          <a class="text-gray-700 hover:text-gray-900 transition" href="{% url 'about' %}">About</a>
           {% if request.user.is_authenticated %}
             <a class="text-gray-700 hover:text-gray-900 transition" href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a>
-            <a class="text-gray-700 hover:text-gray-900 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+            <a class="block px-3 py-2 rounded-md text-red-700 hover:text-red-900 hover:bg-red-100 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
           {% else %}
             {% if ACCOUNT_ALLOW_REGISTRATION %}
               <a id="sign-up-link" class="text-gray-700 hover:text-gray-900 transition" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
@@ -85,11 +83,9 @@
     <!-- Mobile Navigation Menu -->
     <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200">
       <div class="px-2 pt-2 pb-3 space-y-1">
-        <a class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 transition" href="{% url 'home' %}">Home</a>
-        <a class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 transition" href="{% url 'about' %}">About</a>
         {% if request.user.is_authenticated %}
-          <a class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 transition" href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a>
-          <a class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+          {% comment %} <a class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 transition" href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a> {% endcomment %}
+          <a class="block px-3 py-2 rounded-md text-red font-medium text-red-700 hover:bg-red-100 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
         {% else %}
           {% if ACCOUNT_ALLOW_REGISTRATION %}
             <a id="sign-up-link-mobile" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100 transition" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
@@ -116,7 +112,7 @@
     {% endif %}
     {% block main %}
       {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
+        <p>Esta app evalúa capacidades de implementación en dispositivos móviles.</p>
       {% endblock content %}
     {% endblock main %}
   </div>
