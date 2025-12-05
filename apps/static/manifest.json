@@ -41,10 +41,10 @@
   ],
   "icons": [
     {
-      "src": "/static/icons/monochrome_1024.png",
+      "src": "/static/icons/monochrome-1024.png",
       "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "monochrome"
+      "purpose": "monochrome maskable"
     },
     {
       "src": "/static/icons/windows11/SmallTile.scale-100.png",
