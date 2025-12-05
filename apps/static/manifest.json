@@ -41,7 +41,7 @@
   ],
   "icons": [
     {
-      "src": "/static/icons/monochroeme_1024.png",
+      "src": "/static/icons/monochrome_1024.png",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "monochrome"
