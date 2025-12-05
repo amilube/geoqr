@@ -530,13 +530,13 @@
       "src": "/static/icons/android/android-launchericon-512-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/static/icons/android/android-launchericon-192-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/static/icons/android/android-launchericon-144-144.png",
@@ -698,7 +698,7 @@
       "src": "/static/icons/ios/192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/static/icons/ios/256.png",
@@ -710,7 +710,7 @@
       "src": "/static/icons/ios/512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/static/icons/ios/1024.png",
