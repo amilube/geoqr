@@ -90,35 +90,22 @@ EMAIL_SUBJECT_PREFIX = env(
 )
 ACCOUNT_EMAIL_SUBJECT_PREFIX = EMAIL_SUBJECT_PREFIX
 
-EMAIL_HOST = env(
-    "DJANGO_EMAIL_HOST", default="smtp-relay.brevo.com"
-)  # Servidor SMTP de Brevo.
-EMAIL_PORT = env.int("DJANGO_EMAIL_PORT", default=587)  # Puerto SMTP de Brevo.
-EMAIL_USE_SSL = env.bool(
-    "DJANGO_EMAIL_USE_SSL", default=False
-)  # No usar SSL para la conexión SMTP.
-EMAIL_USE_TLS = env.bool(
-    "DJANGO_EMAIL_USE_TLS", default=True
-)  # Usar TLS para la conexión SMTP.
-EMAIL_HOST_USER = env(
-    "DJANGO_EMAIL_HOST_USER", default="mi.correo@dominio.com"
-)  # Tu dirección de correo electrónico de inicio de sesión de Brevo.
-EMAIL_HOST_PASSWORD = env("DJANGO_EMAIL_HOST_PASSWORD", default="")
-
 # ADMIN
 # ------------------------------------------------------------------------------
 # Django Admin URL regex.
 ADMIN_URL = env("DJANGO_ADMIN_URL")
 
-# Anymail
+# Anymail (Brevo/Sendinblue)
 # ------------------------------------------------------------------------------
 # https://anymail.readthedocs.io/en/stable/installation/#installing-anymail
 INSTALLED_APPS += ["anymail"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#email-backend
 # https://anymail.readthedocs.io/en/stable/installation/#anymail-settings-reference
-# https://anymail.readthedocs.io/en/stable/esps
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-ANYMAIL = {}
+# https://anymail.readthedocs.io/en/stable/esps/brevo/
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+ANYMAIL = {
+    "BREVO_API_KEY": env("BREVO_API_KEY"),
+}
 
 # django-compressor
 # ------------------------------------------------------------------------------
