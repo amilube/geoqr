@@ -9,7 +9,7 @@
     "minimal-ui",
     "browser"
   ],
-  "description": "A QR code generator and scanner",
+  "description": "Es una app funcional diseñada para evaluar las capacidades de implementación en dispositivos móviles.",
   "lang": "es",
   "dir": "auto",
   "theme_color": "#546cc8",
@@ -722,14 +722,14 @@
   "id": "/",
   "screenshots": [
     {
-      "src": "/static/images/screenshots/mobile.png",
+      "src": "/static/images/screenshots/mobile_540x720.png",
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Vista principal de GeoQR"
     },
     {
-      "src": "/static/images/screenshots/desktop.png",
+      "src": "/static/images/screenshots/desktop_1280x720.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
