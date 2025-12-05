@@ -25,13 +25,7 @@
       "url": "/?mailto=%s"
     }
   ],
-  "related_applications": [
-    {
-      "platform": "webapp",
-      "url": "https://geoqr.dumanity.com"
-    }
-  ],
-  "prefer_related_applications": true,
+  "prefer_related_applications": false,
   "shortcuts": [
     {
       "name": "Open Scanner",
@@ -45,6 +39,12 @@
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "monochrome maskable"
+    },
+    {
+      "src": "/static/icons/android/android-launchericon-96-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/static/icons/windows11/SmallTile.scale-100.png",
@@ -717,6 +717,23 @@
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
+    }
+  ],
+  "id": "/",
+  "screenshots": [
+    {
+      "src": "/static/images/screenshots/mobile.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Vista principal de GeoQR"
+    },
+    {
+      "src": "/static/images/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Vista de escritorio de GeoQR"
     }
   ]
 }
