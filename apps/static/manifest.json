@@ -35,16 +35,16 @@
   ],
   "icons": [
     {
-      "src": "/static/icons/monochrome-1024.png",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "monochrome maskable"
-    },
-    {
       "src": "/static/icons/android/android-launchericon-96-96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "/static/icons/monochrome-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "monochrome maskable"
     },
     {
       "src": "/static/icons/windows11/SmallTile.scale-100.png",
