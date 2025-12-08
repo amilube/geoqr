@@ -44,3 +44,10 @@ def assetlinks(request):
     Vista que sirve el archivo assetlinks.json necesario para la verificación de aplicaciones en Android.
     """
     return render(request, "pwa/assetlinks.json", content_type="application/json")
+
+
+def privacity_page(request):
+    """
+    Vista que sirve la página de privacidad de la PWA.
+    """
+    return render(request, "pwa/privacity_page.html", status=200)
