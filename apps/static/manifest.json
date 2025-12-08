@@ -3,7 +3,7 @@
   "short_name": "GeoQR",
   "start_url": "/",
   "display": "standalone",
-  "scope": "/",
+  "scope": "geoqr.dumanity.com",
   "display_override": [
     "window-controls-overlay",
     "standalone",
