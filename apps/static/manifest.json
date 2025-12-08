@@ -15,17 +15,19 @@
   "theme_color": "#546cc8",
   "background_color": "#ffffff",
   "orientation": "portrait",
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.dumanity.geoqr"
+    }
+  ],
+  "prefer_related_applications": true,
   "protocol_handlers": [
     {
       "protocol": "web+geoqr",
       "url": "/?q=%s"
-    },
-    {
-      "protocol": "mailto",
-      "url": "/?mailto=%s"
     }
   ],
-  "prefer_related_applications": false,
   "shortcuts": [
     {
       "name": "Open Scanner",
