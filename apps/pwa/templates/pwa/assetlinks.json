@@ -7,7 +7,8 @@
             "namespace": "android_app",
             "package_name": "com.dumanity.geoqr",
             "sha256_cert_fingerprints": [
-                "B6:FA:83:C3:88:F5:9C:41:06:7F:09:52:0E:92:15:7B:44:00:74:58:90:C6:96:7F:A2:64:3C:39:8B:24:31:EF"
+                "B6:FA:83:C3:88:F5:9C:41:06:7F:09:52:0E:92:15:7B:44:00:74:58:90:C6:96:7F:A2:64:3C:39:8B:24:31:EF",
+                "B0:D0:74:45:07:74:61:B6:30:1A:CF:3E:9E:C6:D2:4D:53:8C:D9:3A:B0:F2:44:C1:A6:9B:51:B8:52:FC:FF:74"
             ]
         }
     }
