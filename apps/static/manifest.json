@@ -3,6 +3,7 @@
   "short_name": "GeoQR",
   "start_url": "/",
   "display": "standalone",
+  "scope": "/",
   "display_override": [
     "window-controls-overlay",
     "standalone",
@@ -10,6 +11,9 @@
     "browser"
   ],
   "description": "Es una app funcional diseñada para evaluar las capacidades de implementación en dispositivos móviles.",
+  "categories": [
+    "productivity"
+  ],
   "lang": "es",
   "dir": "auto",
   "theme_color": "#546cc8",
