@@ -37,3 +37,10 @@ def server_error(request):
     El Service Worker redirige aquí cuando recibe errores del servidor.
     """
     return render(request, "pwa/server-error.html", status=200)
+
+
+def assetlinks(request):
+    """
+    Vista que sirve el archivo assetlinks.json necesario para la verificación de aplicaciones en Android.
+    """
+    return render(request, "pwa/assetlinks.json", content_type="application/json")
