@@ -1,9 +1,9 @@
 {
   "name": "GeoQR",
   "short_name": "GeoQR",
+  "scope": "/",
   "start_url": "/",
   "display": "standalone",
-  "scope": "geoqr.dumanity.com",
   "display_override": [
     "window-controls-overlay",
     "standalone",
