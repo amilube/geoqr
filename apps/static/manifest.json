@@ -36,7 +36,14 @@
     {
       "name": "Open Scanner",
       "url": "/scan",
-      "description": "Open the QR scanner"
+      "description": "Open the QR scanner",
+      "icons": [
+        {
+          "src": "/static/icons/android/android-launchericon-96-96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "icons": [
