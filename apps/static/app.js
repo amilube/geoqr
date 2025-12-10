@@ -25,16 +25,16 @@ async function iniciarEscaneo() {
         document.getElementById('result-container').classList.add('hidden');
 
         scanningActive = true;
-        
+
         // Inicializar el escáner html5-qrcode
         html5QrCode = new Html5Qrcode("qr-video");
-        
+
         const config = {
             fps: 10,
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0
         };
-        
+
         // Iniciar el escaneo
         await html5QrCode.start(
             { facingMode: "environment" },
@@ -42,12 +42,12 @@ async function iniciarEscaneo() {
             onScanSuccess,
             onScanFailure
         );
-        
+
         mostrarMensaje('Escaneando... Enfocá el código QR', 'info');
     } catch (error) {
         console.error('Error al acceder a la cámara:', error);
         mostrarMensaje('No se pudo acceder a la cámara. Verificá los permisos.', 'error');
-        
+
         // Revertir UI en caso de error
         document.getElementById('scanner-container').classList.add('hidden');
         document.getElementById('scan-button-container').classList.remove('hidden');
@@ -84,7 +84,7 @@ function onScanFailure(error) {
  */
 async function detenerEscaneo() {
     scanningActive = false;
-    
+
     if (html5QrCode) {
         try {
             await html5QrCode.stop();
@@ -99,7 +99,7 @@ async function detenerEscaneo() {
     document.getElementById('scanner-container').classList.add('hidden');
     document.getElementById('scan-button-container').classList.remove('hidden');
     document.getElementById('instructions').classList.remove('hidden');
-    
+
     ocultarMensaje();
 }
 
@@ -110,7 +110,7 @@ async function detenerEscaneo() {
 function mostrarResultado(content) {
     document.getElementById('qr-result').textContent = content;
     document.getElementById('result-container').classList.remove('hidden');
-    
+
     // Check if content is a valid URL to show "Open Link" button
     const openBtn = document.getElementById('open-btn');
     try {
@@ -121,14 +121,14 @@ function mostrarResultado(content) {
         openBtn.classList.add('hidden');
         openBtn.classList.remove('flex');
     }
-    
+
     // Agregar animación de carga sutil
     const resultElement = document.getElementById('qr-result');
     resultElement.classList.add('loading');
     setTimeout(() => {
         resultElement.classList.remove('loading');
     }, 800);
-    
+
     mostrarMensaje('¡Código QR detectado exitosamente!', 'success');
 }
 
@@ -184,8 +184,8 @@ function mostrarMensaje(mensaje, tipo) {
         return;
     }
     messageContainer.textContent = mensaje;
-    messageContainer.classList.remove('hidden', 'bg-green-100', 'bg-red-100', 'bg-blue-100', 
-                                     'text-green-800', 'text-red-800', 'text-blue-800');
+    messageContainer.classList.remove('hidden', 'bg-green-100', 'bg-red-100', 'bg-blue-100',
+        'text-green-800', 'text-red-800', 'text-blue-800');
 
     if (tipo === 'success') {
         messageContainer.classList.add('bg-green-100', 'text-green-800');
@@ -242,10 +242,76 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready
-            .then(() => updatePushButtonState())
+            .then((registration) => {
+                updatePushButtonState();
+
+                // Registrar Periodic Background Sync si está soportado
+                registerPeriodicSync(registration);
+            })
             .catch((error) => console.debug('Service worker no listo para push:', error));
     }
 });
+
+/**
+ * Registrar sincronización periódica en segundo plano
+ * @param {ServiceWorkerRegistration} registration - Registro del service worker
+ */
+async function registerPeriodicSync(registration) {
+    try {
+        // Verificar si Periodic Sync está soportado
+        if ('periodicSync' in registration) {
+            // Solicitar permiso y registrar sincronización periódica
+            const status = await navigator.permissions.query({
+                name: 'periodic-background-sync',
+            });
+
+            if (status.state === 'granted') {
+                // Registrar sincronización cada 24 horas (valor mínimo puede variar)
+                await registration.periodicSync.register('content-sync', {
+                    minInterval: 24 * 60 * 60 * 1000, // 24 horas en milisegundos
+                });
+                console.log('Periodic Background Sync registrado exitosamente');
+            } else {
+                console.log('Periodic Background Sync: permiso no otorgado');
+            }
+        } else {
+            console.log('Periodic Background Sync no está soportado en este navegador');
+        }
+    } catch (error) {
+        console.debug('No se pudo registrar Periodic Sync:', error);
+    }
+}
+
+/**
+ * Escuchar mensajes del Service Worker
+ */
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.from === 'ServiceWorker') {
+            const { type, message } = event.data;
+
+            switch (type) {
+                case 'OFFLINE':
+                    console.log('App offline:', message);
+                    break;
+                case 'SERVER_ERROR':
+                    console.log('Error del servidor:', message);
+                    break;
+                case 'SERVING_CACHED':
+                    console.log('Sirviendo desde caché:', message);
+                    break;
+                case 'SYNC_COMPLETE':
+                    console.log('Sincronización completa:', message);
+                    break;
+                case 'PERIODIC_SYNC_COMPLETE':
+                    console.log('Sincronización periódica completa:', message);
+                    break;
+                default:
+                    console.log('Mensaje del SW:', event.data);
+            }
+        }
+    });
+}
 
 /**
  * Inicializar Google Maps (callback para la API de Google Maps)
@@ -774,13 +840,13 @@ function cargarGoogleMapsAPI() {
     // Intentar obtener la API key del localStorage o usar una key de desarrollo
     // En producción, el usuario deberá configurar su propia API key
     const apiKey = localStorage.getItem('googleMapsApiKey') || '';
-    
+
     if (!apiKey) {
         // Si no hay API key, mostrar mensaje instructivo
         mostrarMensaje('Nota: Para usar Google Maps, configurá tu API key en localStorage con la clave "googleMapsApiKey"', 'info');
         // Intentar cargar sin API key (modo desarrollo limitado)
     }
-    
+
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
     script.async = true;
@@ -799,9 +865,9 @@ function solicitarUbicacion() {
         mostrarMensaje('Tu navegador no soporta geolocalización', 'error');
         return;
     }
-    
+
     mostrarMensaje('Solicitando tu ubicación...', 'info');
-    
+
     navigator.geolocation.getCurrentPosition(
         ubicacionExitosa,
         ubicacionError,
@@ -822,17 +888,17 @@ function ubicacionExitosa(position) {
         lat: position.coords.latitude,
         lng: position.coords.longitude
     };
-    
+
     mostrarMensaje('¡Ubicación obtenida exitosamente!', 'success');
-    
+
     // Mostrar información de coordenadas
     const locationInfo = document.getElementById('location-info');
     locationInfo.textContent = `Latitud: ${userLocation.lat.toFixed(6)}, Longitud: ${userLocation.lng.toFixed(6)}`;
-    
+
     // Ocultar el botón y mostrar el mapa
     document.getElementById('location-button-container').classList.add('hidden');
     document.getElementById('map-container').classList.remove('hidden');
-    
+
     // Inicializar el mapa con la ubicación del usuario
     inicializarMapa(userLocation);
 }
@@ -843,8 +909,8 @@ function ubicacionExitosa(position) {
  */
 function ubicacionError(error) {
     let mensaje = '';
-    
-    switch(error.code) {
+
+    switch (error.code) {
         case error.PERMISSION_DENIED:
             mensaje = 'Permiso de ubicación denegado. Por favor, habilitá el acceso a tu ubicación.';
             break;
@@ -857,7 +923,7 @@ function ubicacionError(error) {
         default:
             mensaje = 'Error desconocido al obtener la ubicación.';
     }
-    
+
     mostrarMensaje(mensaje, 'error');
 }
 
@@ -871,7 +937,7 @@ function inicializarMapa(location) {
         mostrarMensaje('Google Maps no está disponible. Verificá tu conexión a internet.', 'error');
         return;
     }
-    
+
     // Crear el mapa centrado en la ubicación del usuario
     map = new google.maps.Map(document.getElementById('map'), {
         center: location,
@@ -880,7 +946,7 @@ function inicializarMapa(location) {
         streetViewControl: false,
         fullscreenControl: true
     });
-    
+
     // Crear un marcador en la ubicación del usuario
     marker = new google.maps.Marker({
         position: location,
@@ -896,7 +962,7 @@ function inicializarMapa(location) {
             strokeWeight: 2
         }
     });
-    
+
     // Agregar un InfoWindow al marcador
     const infoWindow = new google.maps.InfoWindow({
         content: `
@@ -907,12 +973,12 @@ function inicializarMapa(location) {
             </div>
         `
     });
-    
+
     // Mostrar el InfoWindow al hacer clic en el marcador
     marker.addListener('click', () => {
         infoWindow.open(map, marker);
     });
-    
+
     // Mostrar el InfoWindow automáticamente al cargar
     infoWindow.open(map, marker);
 }
