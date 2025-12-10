@@ -25,13 +25,19 @@
       "id": "com.dumanity.geoqr-1"
     }
   ],
-  "prefer_related_applications": true,
+  "prefer_related_applications": false,
   "protocol_handlers": [
     {
       "protocol": "web+geoqr",
       "url": "/?q=%s"
     }
   ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "shortcuts": [
     {
       "name": "Open Scanner",

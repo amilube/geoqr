@@ -347,8 +347,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: data.body || 'Nueva notificación',
-    icon: data.icon || '{% static "icons/icon-192x192.png" %}',
-    badge: data.badge || '{% static "icons/icon-72x72.png" %}',
+    icon: data.icon || '/static/icons/android/android-launchericon-192-192.png',
+    badge: data.badge || '/static/icons/monochrome-1024.png',
     image: data.image || undefined,
     data: data.data || {},
     vibrate: data.vibrate || [200, 100, 200],
