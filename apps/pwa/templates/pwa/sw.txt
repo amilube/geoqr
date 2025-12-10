@@ -5,7 +5,10 @@
 
 const CACHE_NAME = '{{ cache_name|default:"geoqr-v2" }}';
 const DEBUG = {{ debug|lower }};
-const OFFLINE_PAGE = '/offline.html';
+
+// Offline page configuration (required for PWABuilder detection)
+const offlineFallbackPage = '/offline.html';
+const OFFLINE_PAGE = offlineFallbackPage;  // Alias para compatibilidad
 const SERVER_ERROR_PAGE = '/server-error.html';
 
 // Importar Workbox desde CDN
@@ -87,19 +90,29 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then(async (cache) => {
       if (DEBUG) console.log('Service Worker: Intentando cachear archivos');
       
-      // Páginas críticas que DEBEN cachearse
-      const criticalUrls = [OFFLINE_PAGE, SERVER_ERROR_PAGE];
+      // Cache offline page first (PWABuilder requirement)
+      try {
+        await cache.add(offlineFallbackPage);
+        if (DEBUG) console.log('Service Worker: Offline page cacheada');
+      } catch (err) {
+        console.error('Service Worker: Error al cachear offline page', err);
+        throw err;
+      }
+      
+      // Páginas críticas adicionales
+      const criticalUrls = [SERVER_ERROR_PAGE];
       
       try {
         await cache.addAll(criticalUrls);
         if (DEBUG) console.log('Service Worker: Páginas críticas cacheadas');
       } catch (err) {
         console.error('Service Worker: Error al cachear páginas críticas', err);
-        throw err;
       }
       
       // Cachear recursos no críticos (no bloquean instalación)
-      const otherUrls = urlsToCache.filter(url => !criticalUrls.includes(url));
+      const otherUrls = urlsToCache.filter(url => 
+        url !== offlineFallbackPage && !criticalUrls.includes(url)
+      );
       await Promise.allSettled(
         otherUrls.map(async (url) => {
           try {
@@ -164,7 +177,7 @@ workbox.routing.registerRoute(
 );
 
 // Manejo especial para navegación (páginas HTML)
-// Este listener implementa la estrategia de Offline Fallback requerida por PWABuilder
+// Offline page strategy - PWABuilder compliant
 self.addEventListener('fetch', (event) => {
   // Solo manejar navegación; Workbox se encarga del resto
   if (event.request.mode !== 'navigate') {
@@ -200,13 +213,12 @@ self.addEventListener('fetch', (event) => {
       
       return networkResp;
     } catch (error) {
-      // Error de red o servidor caído - OFFLINE SUPPORT
+      // Offline support - serve cached page or offline fallback
       if (DEBUG) console.error('Service Worker: Error en navegación', error);
       
       const cache = await caches.open(CACHE_NAME);
       
-      // Estrategia de fallback en cascada (requerida por PWABuilder)
-      // 1. Intentar servir la página específica desde caché
+      // 1. Try to serve the specific page from cache
       const cachedResp = await cache.match(event.request);
       if (cachedResp) {
         notifyClients({
@@ -216,18 +228,21 @@ self.addEventListener('fetch', (event) => {
         return cachedResp;
       }
       
-      // 2. Determinar si es offline o error del servidor
-      const isOffline = !navigator.onLine;
-      const fallbackPage = isOffline ? OFFLINE_PAGE : SERVER_ERROR_PAGE;
-      const notificationType = isOffline ? 'OFFLINE' : 'SERVER_ERROR';
-      const notificationMessage = isOffline 
-        ? 'No hay conexión a internet. Mostrando página offline.'
-        : 'El servidor no está disponible. Mostrando página de error.';
+      // 2. Serve offline fallback page (PWABuilder pattern)
+      const offlineResp = await cache.match(offlineFallbackPage);
+      if (offlineResp) {
+        notifyClients({
+          type: 'OFFLINE',
+          message: 'No hay conexión a internet. Mostrando página offline.'
+        });
+        return offlineResp;
+      }
       
-      // 3. Servir página de fallback (offline.html o server-error.html)
-      return getFallbackPage(fallbackPage, {
-        type: notificationType,
-        message: notificationMessage
+      // 3. Last resort: generic error response
+      return new Response('Sin conexión. Por favor, intenta más tarde.', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
       });
     }
   })());
@@ -262,12 +277,13 @@ async function syncData() {
   }
 }
 
-// Sincronización periódica (Periodic Sync)
+// Periodic Background Sync API
+// https://web.dev/periodic-background-sync/
 self.addEventListener('periodicsync', (event) => {
-  if (DEBUG) console.log('Service Worker: Sincronización periódica', event.tag);
+  if (DEBUG) console.log('Service Worker: Periodic background sync', event.tag);
   
   if (event.tag === 'content-sync') {
-    event.waitUntil(periodicSync());
+    event.waitUntil(periodicContentSync());
   }
 });
 
@@ -275,7 +291,7 @@ self.addEventListener('periodicsync', (event) => {
  * Sincronización periódica de contenido
  * Se ejecuta automáticamente en intervalos definidos por el navegador
  */
-async function periodicSync() {
+async function periodicContentSync() {
   try {
     if (DEBUG) console.log('Service Worker: Ejecutando sincronización periódica...');
     
@@ -285,8 +301,8 @@ async function periodicSync() {
     // URLs a actualizar periódicamente
     const urlsToUpdate = [
       '/',
-      '/offline.html',
-      '/server-error.html'
+      offlineFallbackPage,
+      SERVER_ERROR_PAGE
     ];
     
     for (const url of urlsToUpdate) {
