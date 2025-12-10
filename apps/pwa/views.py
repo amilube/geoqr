@@ -1,18 +1,57 @@
+import hashlib
+
 from django.conf import settings
 from django.shortcuts import render
+from django.utils import timezone
+
+
+def _get_service_worker_cache_name():
+    """
+    Genera el nombre de caché del Service Worker automáticamente.
+    Usa hash basado en contenido de archivos críticos - cambios automáticos = nueva versión.
+    """
+    try:
+        files_to_hash = [
+            # Template del service worker
+            settings.BASE_DIR / "apps" / "pwa" / "templates" / "pwa" / "sw.txt",
+            # Archivos estáticos críticos
+            settings.BASE_DIR / "apps" / "static" / "app.js",
+            settings.BASE_DIR / "apps" / "static" / "fallback.css",
+            settings.BASE_DIR / "apps" / "static" / "manifest.json",
+        ]
+
+        combined_content = b""
+        for file_path in files_to_hash:
+            if file_path.exists():
+                combined_content += file_path.read_bytes()
+
+        # Generar hash corto del contenido combinado
+        content_hash = hashlib.sha256(combined_content).hexdigest()[:12]
+
+    except OSError:
+        # Fallback: usar timestamp si hay un error de E/S (archivo no encontrado, permisos, etc.)
+        if settings.DEBUG:
+            return f"geoqr-dev-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+
+        # En producción, usar versión fija como último recurso
+        return "geoqr-v1"
+    else:
+        return f"geoqr-{content_hash}"
 
 
 def service_worker(request):
     """
     Vista que sirve el Service Worker como una plantilla Django.
 
-    Esto permite usar variables de plantilla como {{ STATIC_URL }} y {{ cache_name }}
-    en el archivo service-worker.js.
+    El cache_name se genera AUTOMÁTICAMENTE basado en el hash del contenido
+    de archivos críticos. Cualquier cambio en el SW o archivos estáticos
+    genera un nuevo nombre de caché, forzando actualización en clientes.
+
+    No requiere intervención manual - la versión se actualiza automáticamente
+    cuando modificas el código.
     """
     context = {
-        "cache_name": f"geoqr-v{settings.SERVICE_WORKER_VERSION}"
-        if hasattr(settings, "SERVICE_WORKER_VERSION")
-        else "geoqr-v1",
+        "cache_name": _get_service_worker_cache_name(),
         "debug": settings.DEBUG,
     }
     return render(

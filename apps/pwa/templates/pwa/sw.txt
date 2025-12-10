@@ -1,70 +1,43 @@
 {% load static %}
 // sw.js - Service Worker para PWA
 // {% now "Y-m-d H:i:s" %}
-// Permite funcionamiento offline y caché de recursos
+// Permite funcionamiento offline y caché de recursos con Workbox
 
 const CACHE_NAME = '{{ cache_name|default:"geoqr-v2" }}';
 const DEBUG = {{ debug|lower }};
+const OFFLINE_PAGE = '/offline.html';
+const SERVER_ERROR_PAGE = '/server-error.html';
+
+// Importar Workbox desde CDN
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
 
 /**
- * Maneja errores de solicitud (offline, servidor caído, etc.)
- * @param {Request} request - La solicitud HTTP que falló
- * @returns {Promise<Response>} - Respuesta cacheada o página de error
+ * Obtiene página de fallback desde caché
+ * @param {string} pageUrl - URL de la página de fallback
+ * @param {Object} notificationData - Datos para notificar al cliente
+ * @returns {Promise<Response>} - Respuesta cacheada o error genérico
  */
-function handleRequestError(request) {
-  // Si es una solicitud de documento (página HTML)
-  if (request.destination === 'document') {
-    // Verificar si es verdaderamente offline (sin conexión de red)
-    if (!navigator.onLine) {
-      if (DEBUG) console.log('Service Worker: Usuario offline');
-      
-      // Intentar obtener página offline en caché
-      return caches.match('/offline.html')
-        .then(cachedPage => {
-          if (cachedPage) {
-            notifyClients({
-              type: 'OFFLINE',
-              message: 'No hay conexión a internet. Mostrando página en caché.'
-            });
-            return cachedPage;
-          }
-          
-          // Si no está en caché, retornar respuesta de error simple
-          if (DEBUG) console.error('Service Worker: /offline.html no está en caché');
-          return new Response('Sin conexión. Por favor, intenta más tarde.', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-          });
-        });
-    } else {
-      // Hay conexión pero no se pudo alcanzar el servidor
-      if (DEBUG) console.log('Service Worker: Servidor no disponible (hay conexión)');
-      
-      // Intentar obtener página de error en caché
-      return caches.match('/server-error.html')
-        .then(errorPage => {
-          if (errorPage) {
-            notifyClients({
-              type: 'SERVER_ERROR',
-              message: 'El servidor no está disponible. Mostrando página en caché.'
-            });
-            return errorPage;
-          }
-          
-          // Si no está en caché, retornar respuesta de error simple
-          if (DEBUG) console.error('Service Worker: /server-error.html no está en caché');
-          return new Response('Servidor no disponible. Por favor, intenta más tarde.', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-          });
-        });
+async function getFallbackPage(pageUrl, notificationData) {
+  try {
+    const cache = await caches.open(CACHE_NAME);
+    const cachedPage = await cache.match(pageUrl);
+    
+    if (cachedPage) {
+      notifyClients(notificationData);
+      return cachedPage;
     }
+    
+    if (DEBUG) console.error(`Service Worker: ${pageUrl} no está en caché`);
+  } catch (err) {
+    if (DEBUG) console.error('Service Worker: Error al obtener fallback', err);
   }
   
-  // Para otros tipos de solicitud (API, recursos), retornar undefined
-  return Promise.resolve(undefined);
+  // Respuesta de error genérica
+  return new Response(notificationData.message || 'Servicio no disponible', {
+    status: 503,
+    statusText: 'Service Unavailable',
+    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+  });
 }
 
 /**
@@ -87,24 +60,24 @@ function notifyClients(message) {
 
 
 const urlsToCache = [
-  // Páginas principales
-  // '/',
-  
   // Páginas de error (críticas para funcionar offline)
-  '/offline.html',
-  '/server-error.html',
+  OFFLINE_PAGE,
+  SERVER_ERROR_PAGE,
   
   // Archivos estáticos
   '{% static "manifest.json" %}',
   '{% static "fallback.css" %}',
   '{% static "app.js" %}',
   
-  // Fuentes y librerías externas
+  // Fuentes y librerías externas (se cachean con no-cors)
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/htmx.org@2.0.0',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
 ];
+
+// CDNs permitidos para cachear
+const ALLOWED_CDNS = ['cdn.tailwindcss.com', 'unpkg.com', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 
 // Instalación del Service Worker
 self.addEventListener('install', (event) => {
@@ -114,39 +87,44 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then(async (cache) => {
       if (DEBUG) console.log('Service Worker: Intentando cachear archivos');
       
-      // Páginas críticas que DEBEN cachearse (offline y server-error)
-      const criticalUrls = ['/offline.html', '/server-error.html'];
+      // Páginas críticas que DEBEN cachearse
+      const criticalUrls = [OFFLINE_PAGE, SERVER_ERROR_PAGE];
       
-      // Intentar cachear páginas críticas primero
       try {
         await cache.addAll(criticalUrls);
-        if (DEBUG) console.log('Service Worker: Páginas críticas cacheadas exitosamente');
+        if (DEBUG) console.log('Service Worker: Páginas críticas cacheadas');
       } catch (err) {
-        console.error('Service Worker: Error crítico - no se pudieron cachear páginas de error', err);
-        // No continuar si las páginas críticas no se cachearon
+        console.error('Service Worker: Error al cachear páginas críticas', err);
         throw err;
       }
       
-      // Cachear el resto de recursos (no críticos)
+      // Cachear recursos no críticos (no bloquean instalación)
       const otherUrls = urlsToCache.filter(url => !criticalUrls.includes(url));
-      const promises = otherUrls.map(async (url) => {
-        try {
-          const req = new Request(url, { mode: 'no-cors' });
-          const response = await fetch(req);
-          if (response) {
-            await cache.put(url, response.clone());
-            if (DEBUG) console.log('Service Worker: Cacheado', url);
+      await Promise.allSettled(
+        otherUrls.map(async (url) => {
+          try {
+            const req = new Request(url, { mode: 'no-cors' });
+            const response = await fetch(req);
+            if (response) {
+              await cache.put(url, response.clone());
+              if (DEBUG) console.log('Service Worker: Cacheado', url);
+            }
+          } catch (err) {
+            console.warn('Service Worker: No se pudo cachear', url, err);
           }
-        } catch (err) {
-          console.warn('Service Worker: no se pudo cachear', url, err);
-        }
-      });
-      
-      await Promise.all(promises);
+        })
+      );
     })
   );
   
   self.skipWaiting();
+});
+
+// Escuchar mensajes del cliente para activación manual
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activación del Service Worker
@@ -156,107 +134,97 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          // Eliminar cachés antiguas
-          if (cacheName !== CACHE_NAME) {
+        cacheNames
+          .filter(cacheName => cacheName !== CACHE_NAME)
+          .map((cacheName) => {
             if (DEBUG) console.log('Service Worker: Eliminando caché antigua:', cacheName);
             return caches.delete(cacheName);
-          }
-        })
+          })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  
-  return self.clients.claim();
 });
 
-// Interceptar peticiones de red
+// Habilitar Navigation Preload si está soportado (mejora rendimiento)
+if (workbox.navigationPreload.isSupported()) {
+  workbox.navigationPreload.enable();
+}
+
+// Estrategia StaleWhileRevalidate de Workbox para recursos estáticos
+// Sirve desde caché inmediatamente mientras actualiza en segundo plano
+workbox.routing.registerRoute(
+  ({ request, url }) => {
+    // Solo para recursos del mismo origen o CDNs permitidos
+    return url.origin === self.location.origin || 
+           ALLOWED_CDNS.some(host => url.hostname.includes(host));
+  },
+  new workbox.strategies.StaleWhileRevalidate({
+    cacheName: CACHE_NAME
+  })
+);
+
+// Manejo especial para navegación (páginas HTML)
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
-  
-  // No cachear peticiones no-GET
-  if (event.request.method !== 'GET') {
+  // Solo manejar navegación; Workbox se encarga del resto
+  if (event.request.mode !== 'navigate') {
     return;
   }
   
-  // No cachear peticiones a otros dominios (excepto APIs específicas)
-  if (url.origin !== self.location.origin) {
-    // Permitir algunos CDNs específicos
-    if (!['cdn.tailwindcss.com', 'unpkg.com', 'fonts.googleapis.com', 'googleapis.com'].some(host => url.hostname.includes(host))) {
-      return;
+  event.respondWith((async () => {
+    try {
+      // 1. Intentar usar preloadResponse primero (Navigation Preload)
+      const preloadResp = await event.preloadResponse;
+      if (preloadResp) {
+        if (DEBUG) console.log('Service Worker: Usando preload response');
+        return preloadResp;
+      }
+
+      // 2. Hacer fetch a la red
+      const networkResp = await fetch(event.request);
+      
+      // 3. Validar respuesta
+      if (!networkResp || networkResp.status >= 500) {
+        throw new Error(`Server error: ${networkResp?.status || 'No response'}`);
+      }
+      
+      // 4. Cachear la página navegada exitosamente
+      if (networkResp.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, networkResp.clone());
+        if (DEBUG) console.log('Service Worker: Página cacheada', event.request.url);
+      }
+      
+      return networkResp;
+    } catch (error) {
+      // Error de red o servidor caído
+      if (DEBUG) console.error('Service Worker: Error en navegación', error);
+      
+      const cache = await caches.open(CACHE_NAME);
+      
+      // Intentar servir la página específica desde caché
+      const cachedResp = await cache.match(event.request);
+      if (cachedResp) {
+        notifyClients({
+          type: 'SERVING_CACHED',
+          message: 'Mostrando versión en caché de la página'
+        });
+        return cachedResp;
+      }
+      
+      // Determinar si es offline o error del servidor
+      const isOffline = !navigator.onLine;
+      const fallbackPage = isOffline ? OFFLINE_PAGE : SERVER_ERROR_PAGE;
+      const notificationType = isOffline ? 'OFFLINE' : 'SERVER_ERROR';
+      const notificationMessage = isOffline 
+        ? 'No hay conexión a internet. Mostrando página offline.'
+        : 'El servidor no está disponible. Mostrando página de error.';
+      
+      return getFallbackPage(fallbackPage, {
+        type: notificationType,
+        message: notificationMessage
+      });
     }
-  }
-  
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Si está en caché, devolver la versión cacheada
-        if (response) {
-          return response;
-        }
-        
-        // Si no está en caché, hacer la petición de red
-        return fetch(event.request)
-          .then((response) => {
-            // Manejo de errores HTTP del servidor (5xx, 4xx, etc.)
-            if (!response) {
-              if (DEBUG) console.warn('Service Worker: Response null', event.request.url);
-              return handleRequestError(event.request);
-            }
-            
-            // Si es error 5xx (servidor caído), mostrar página de error del servidor
-            if (response.status >= 500) {
-              if (DEBUG) console.warn('Service Worker: Error del servidor', response.status, event.request.url);
-              if (event.request.destination === 'document') {
-                return caches.match('/server-error.html')
-                  .then(cachedPage => cachedPage || caches.match('/'))
-                  .then(fallback => {
-                    // Notificar al cliente sobre el error del servidor
-                    notifyClients({
-                      type: 'SERVER_ERROR',
-                      status: response.status,
-                      message: 'El servidor no está disponible en este momento. Mostrando contenido en caché.'
-                    });
-                    return fallback;
-                  });
-              }
-              return response;
-            }
-            
-            // Si es error 4xx (página no encontrada, etc.), retornar la respuesta tal cual
-            if (response.status >= 400) {
-              if (DEBUG) console.warn('Service Worker: Error del cliente', response.status, event.request.url);
-              return response;
-            }
-            
-            // Verificar que la respuesta es válida (status 200 y tipo correcto)
-            if (response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors' && response.type !== 'opaque')) {
-              if (DEBUG) console.warn('Service Worker: Response no cacheble', response.status, response.type);
-              return response;
-            }
-            
-            // Clonar la respuesta porque es un stream que solo puede leerse una vez
-            const responseToCache = response.clone();
-            
-            // Agregar la respuesta al caché para futuras peticiones (actualizar caché)
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-                if (DEBUG) console.log('Service Worker: Actualizado en caché', event.request.url);
-              })
-              .catch(err => {
-                if (DEBUG) console.warn('Service Worker: Error al cachear', err);
-              });
-            
-            return response;
-          })
-          .catch((error) => {
-            // Error de red: no hay conexión o la solicitud fue bloqueada
-            if (DEBUG) console.error('Service Worker: Error de red', error, event.request.url);
-            return handleRequestError(event.request);
-          });
-      })
-  );
+  })());
 });
 
 // Sincronización en segundo plano
