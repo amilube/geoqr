@@ -2,6 +2,19 @@
 // sw.js - Service Worker para PWA
 // {% now "Y-m-d H:i:s" %}
 // Permite funcionamiento offline y caché de recursos con Workbox
+//
+// OFFLINE STRATEGY: Offline page + Offline copy of pages
+// This service worker implements PWABuilder-compatible offline support:
+// 1. Caches an offline fallback page during installation
+// 2. Attempts to serve pages from network first
+// 3. Falls back to cached copies when offline
+// 4. Shows offline page when no cached version exists
+//
+// PWABuilder Detection Requirements Met:
+// - ✓ Offline fallback page defined (offlineFallbackPage)
+// - ✓ Cached during install event
+// - ✓ Served when network fails in fetch event
+// - ✓ Navigation requests handled properly
 
 const CACHE_NAME = '{{ cache_name|default:"geoqr-v2" }}';
 const DEBUG = {{ debug|lower }};
@@ -177,75 +190,68 @@ workbox.routing.registerRoute(
 );
 
 // Manejo especial para navegación (páginas HTML)
-// Offline page strategy - PWABuilder compliant
+// Offline page + Offline copy of pages strategy (PWABuilder compliant)
+// This follows the pattern required by PWABuilder and similar PWA detection tools
 self.addEventListener('fetch', (event) => {
-  // Solo manejar navegación; Workbox se encarga del resto
-  if (event.request.mode !== 'navigate') {
-    return;
-  }
-  
-  event.respondWith((async () => {
-    try {
-      // 1. Intentar usar preloadResponse primero (Navigation Preload)
-      const preloadResp = await event.preloadResponse;
-      if (preloadResp) {
-        if (DEBUG) console.log('Service Worker: Usando preload response');
-        // Cachear la respuesta exitosa
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(event.request, preloadResp.clone());
-        return preloadResp;
-      }
+  if (event.request.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        // Try to use preload response first (performance optimization)
+        const preloadResp = await event.preloadResponse;
 
-      // 2. Hacer fetch a la red
-      const networkResp = await fetch(event.request);
-      
-      // 3. Validar respuesta
-      if (!networkResp || networkResp.status >= 500) {
-        throw new Error(`Server error: ${networkResp?.status || 'No response'}`);
-      }
-      
-      // 4. Cachear la página navegada exitosamente
-      if (networkResp.ok) {
+        if (preloadResp) {
+          // Cache the preload response for offline access
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, preloadResp.clone());
+          return preloadResp;
+        }
+
+        // Try network request
+        const networkResp = await fetch(event.request);
+        
+        // Cache successful navigation responses for offline access
+        if (networkResp && networkResp.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(event.request, networkResp.clone());
+        }
+        
+        return networkResp;
+      } catch (error) {
+        // Network failed - this is where offline support kicks in
+        // First, try to serve a cached copy of the specific page requested
         const cache = await caches.open(CACHE_NAME);
-        cache.put(event.request, networkResp.clone());
-        if (DEBUG) console.log('Service Worker: Página cacheada', event.request.url);
-      }
-      
-      return networkResp;
-    } catch (error) {
-      // Offline support - serve cached page or offline fallback
-      if (DEBUG) console.error('Service Worker: Error en navegación', error);
-      
-      const cache = await caches.open(CACHE_NAME);
-      
-      // 1. Try to serve the specific page from cache
-      const cachedResp = await cache.match(event.request);
-      if (cachedResp) {
-        notifyClients({
-          type: 'SERVING_CACHED',
-          message: 'Mostrando versión en caché de la página'
+        const cachedPage = await cache.match(event.request);
+        
+        if (cachedPage) {
+          // We have a cached version of this exact page
+          notifyClients({
+            type: 'SERVING_CACHED',
+            message: 'Mostrando versión en caché de la página'
+          });
+          return cachedPage;
+        }
+        
+        // No cached version exists, fall back to the offline page
+        // This is the critical part for PWABuilder detection
+        const cachedResp = await cache.match(offlineFallbackPage);
+        
+        if (cachedResp) {
+          notifyClients({
+            type: 'OFFLINE',
+            message: 'No hay conexión a internet. Mostrando página offline.'
+          });
+          return cachedResp;
+        }
+        
+        // Last resort: generic error response (should never reach here)
+        return new Response('Offline - No cached content available', {
+          status: 503,
+          statusText: 'Service Unavailable',
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
         });
-        return cachedResp;
       }
-      
-      // 2. Serve offline fallback page (PWABuilder pattern)
-      const offlineResp = await cache.match(offlineFallbackPage);
-      if (offlineResp) {
-        notifyClients({
-          type: 'OFFLINE',
-          message: 'No hay conexión a internet. Mostrando página offline.'
-        });
-        return offlineResp;
-      }
-      
-      // 3. Last resort: generic error response
-      return new Response('Sin conexión. Por favor, intenta más tarde.', {
-        status: 503,
-        statusText: 'Service Unavailable',
-        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-      });
-    }
-  })());
+    })());
+  }
 });
 
 // Sincronización en segundo plano (Background Sync)
