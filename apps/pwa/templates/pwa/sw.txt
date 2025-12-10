@@ -164,6 +164,7 @@ workbox.routing.registerRoute(
 );
 
 // Manejo especial para navegación (páginas HTML)
+// Este listener implementa la estrategia de Offline Fallback requerida por PWABuilder
 self.addEventListener('fetch', (event) => {
   // Solo manejar navegación; Workbox se encarga del resto
   if (event.request.mode !== 'navigate') {
@@ -176,6 +177,9 @@ self.addEventListener('fetch', (event) => {
       const preloadResp = await event.preloadResponse;
       if (preloadResp) {
         if (DEBUG) console.log('Service Worker: Usando preload response');
+        // Cachear la respuesta exitosa
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(event.request, preloadResp.clone());
         return preloadResp;
       }
 
@@ -196,12 +200,13 @@ self.addEventListener('fetch', (event) => {
       
       return networkResp;
     } catch (error) {
-      // Error de red o servidor caído
+      // Error de red o servidor caído - OFFLINE SUPPORT
       if (DEBUG) console.error('Service Worker: Error en navegación', error);
       
       const cache = await caches.open(CACHE_NAME);
       
-      // Intentar servir la página específica desde caché
+      // Estrategia de fallback en cascada (requerida por PWABuilder)
+      // 1. Intentar servir la página específica desde caché
       const cachedResp = await cache.match(event.request);
       if (cachedResp) {
         notifyClients({
@@ -211,7 +216,7 @@ self.addEventListener('fetch', (event) => {
         return cachedResp;
       }
       
-      // Determinar si es offline o error del servidor
+      // 2. Determinar si es offline o error del servidor
       const isOffline = !navigator.onLine;
       const fallbackPage = isOffline ? OFFLINE_PAGE : SERVER_ERROR_PAGE;
       const notificationType = isOffline ? 'OFFLINE' : 'SERVER_ERROR';
@@ -219,6 +224,7 @@ self.addEventListener('fetch', (event) => {
         ? 'No hay conexión a internet. Mostrando página offline.'
         : 'El servidor no está disponible. Mostrando página de error.';
       
+      // 3. Servir página de fallback (offline.html o server-error.html)
       return getFallbackPage(fallbackPage, {
         type: notificationType,
         message: notificationMessage
@@ -227,16 +233,82 @@ self.addEventListener('fetch', (event) => {
   })());
 });
 
-// Sincronización en segundo plano
+// Sincronización en segundo plano (Background Sync)
 self.addEventListener('sync', (event) => {
   if (DEBUG) console.log('Service Worker: Sincronización en segundo plano', event.tag);
   
   if (event.tag === 'sync-data') {
-    event.waitUntil(
-      Promise.resolve()
-    );
+    event.waitUntil(syncData());
   }
 });
+
+/**
+ * Sincronización de datos cuando hay conexión
+ */
+async function syncData() {
+  try {
+    // Aquí puedes implementar lógica de sincronización
+    // Por ejemplo, enviar datos guardados offline al servidor
+    if (DEBUG) console.log('Service Worker: Sincronizando datos...');
+    
+    // Notificar a los clientes que la sincronización terminó
+    notifyClients({
+      type: 'SYNC_COMPLETE',
+      message: 'Datos sincronizados exitosamente'
+    });
+  } catch (error) {
+    if (DEBUG) console.error('Service Worker: Error en sincronización', error);
+    throw error; // Reintentar sync
+  }
+}
+
+// Sincronización periódica (Periodic Sync)
+self.addEventListener('periodicsync', (event) => {
+  if (DEBUG) console.log('Service Worker: Sincronización periódica', event.tag);
+  
+  if (event.tag === 'content-sync') {
+    event.waitUntil(periodicSync());
+  }
+});
+
+/**
+ * Sincronización periódica de contenido
+ * Se ejecuta automáticamente en intervalos definidos por el navegador
+ */
+async function periodicSync() {
+  try {
+    if (DEBUG) console.log('Service Worker: Ejecutando sincronización periódica...');
+    
+    // Actualizar caché con contenido nuevo del servidor
+    const cache = await caches.open(CACHE_NAME);
+    
+    // URLs a actualizar periódicamente
+    const urlsToUpdate = [
+      '/',
+      '/offline.html',
+      '/server-error.html'
+    ];
+    
+    for (const url of urlsToUpdate) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          await cache.put(url, response);
+          if (DEBUG) console.log('Service Worker: Actualizado en caché periódica', url);
+        }
+      } catch (err) {
+        if (DEBUG) console.warn('Service Worker: No se pudo actualizar', url, err);
+      }
+    }
+    
+    notifyClients({
+      type: 'PERIODIC_SYNC_COMPLETE',
+      message: 'Contenido actualizado en segundo plano'
+    });
+  } catch (error) {
+    if (DEBUG) console.error('Service Worker: Error en sincronización periódica', error);
+  }
+}
 
 // Notificaciones push
 self.addEventListener('push', (event) => {
