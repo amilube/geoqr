@@ -1063,9 +1063,48 @@ async function solicitarPermisoNotificaciones() {
 }
 
 /**
+ * Enviar una notificación (compatible con Service Worker)
+ * @param {string} title - Título de la notificación
+ * @param {Object} options - Opciones de la notificación
+ */
+async function enviarNotificacion(title, options) {
+    try {
+        // Si hay Service Worker activo, usar showNotification
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            const registration = await navigator.serviceWorker.ready;
+
+            // Agregar data.url para que el Service Worker maneje el click correctamente
+            const swOptions = {
+                ...options,
+                data: {
+                    url: window.location.origin + '/',
+                    ...options.data
+                }
+            };
+
+            await registration.showNotification(title, swOptions);
+            addNotificationLog('✅ Notificación enviada vía Service Worker', 'success');
+        } else {
+            // Si no hay Service Worker, usar el constructor tradicional
+            const notification = new Notification(title, options);
+            addNotificationLog('✅ Notificación enviada directamente', 'success');
+
+            notification.onclick = function () {
+                addNotificationLog('👆 Usuario hizo clic en la notificación', 'info');
+                window.focus();
+                notification.close();
+            };
+        }
+    } catch (error) {
+        addNotificationLog('❌ Error al enviar notificación: ' + error.message, 'error');
+        throw error;
+    }
+}
+
+/**
  * Enviar una notificación de bienvenida
  */
-function enviarNotificacionBienvenida() {
+async function enviarNotificacionBienvenida() {
     if (!notificationPermissionGranted) {
         addNotificationLog('⚠️ No se puede enviar notificación: permisos no concedidos', 'warning');
         return;
@@ -1076,7 +1115,7 @@ function enviarNotificacionBienvenida() {
         addNotificationLog('📤 Enviando notificación de bienvenida...', 'info');
 
         try {
-            const notification = new Notification('¡Bienvenido a GeoQR!', {
+            await enviarNotificacion('¡Bienvenido a GeoQR!', {
                 body: 'La aplicación está lista para escanear códigos QR y obtener tu ubicación.',
                 icon: '/static/icons/android/android-launchericon-192-192.png',
                 badge: '/static/icons/android/android-launchericon-96-96.png',
@@ -1084,16 +1123,8 @@ function enviarNotificacionBienvenida() {
                 requireInteraction: false,
                 silent: false
             });
-
-            addNotificationLog('✅ Notificación enviada exitosamente', 'success');
-
-            notification.onclick = function () {
-                addNotificationLog('👆 Usuario hizo clic en la notificación', 'info');
-                window.focus();
-                notification.close();
-            };
         } catch (error) {
-            addNotificationLog('❌ Error al enviar notificación: ' + error.message, 'error');
+            // Error ya loggeado en enviarNotificacion
         }
     } else {
         addNotificationLog('⚠️ No se envió notificación: la app tiene el foco', 'warning');

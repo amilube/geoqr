@@ -135,22 +135,53 @@
       // Enviar notificación de prueba
       addNotificationLog('🧪 Enviando notificación de prueba MANUAL...', 'info');
       try {
-        const notification = new Notification('🧪 Notificación de Prueba', {
-          body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
-          icon: '/static/icons/android/android-launchericon-192-192.png',
-          badge: '/static/icons/android/android-launchericon-96-96.png',
-          tag: 'test-notification',
-          requireInteraction: false,
-          vibrate: [200, 100, 200]
-        });
+        // Usar la función global de app.js que maneja Service Worker
+        if (typeof enviarNotificacion === 'function') {
+          await enviarNotificacion('🧪 Notificación de Prueba', {
+            body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+            icon: '/static/icons/android/android-launchericon-192-192.png',
+            badge: '/static/icons/android/android-launchericon-96-96.png',
+            tag: 'test-notification',
+            requireInteraction: false,
+            vibrate: [200, 100, 200],
+            data: {
+              url: window.location.origin + '/'
+            }
+          });
+        } else {
+          // Fallback si la función no está disponible
+          if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            const registration = await navigator.serviceWorker.ready;
+            await registration.showNotification('🧪 Notificación de Prueba', {
+              body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+              icon: '/static/icons/android/android-launchericon-192-192.png',
+              badge: '/static/icons/android/android-launchericon-96-96.png',
+              tag: 'test-notification',
+              requireInteraction: false,
+              vibrate: [200, 100, 200],
+              data: {
+                url: window.location.origin + '/'
+              }
+            });
+            addNotificationLog('✅ Notificación de prueba enviada vía Service Worker', 'success');
+          } else {
+            const notification = new Notification('🧪 Notificación de Prueba', {
+              body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+              icon: '/static/icons/android/android-launchericon-192-192.png',
+              badge: '/static/icons/android/android-launchericon-96-96.png',
+              tag: 'test-notification',
+              requireInteraction: false,
+              vibrate: [200, 100, 200]
+            });
+            addNotificationLog('✅ Notificación de prueba enviada', 'success');
 
-        addNotificationLog('✅ Notificación de prueba enviada', 'success');
-
-        notification.onclick = function() {
-          addNotificationLog('👆 Click en notificación de prueba', 'info');
-          window.focus();
-          notification.close();
-        };
+            notification.onclick = function() {
+              addNotificationLog('👆 Click en notificación de prueba', 'info');
+              window.focus();
+              notification.close();
+            };
+          }
+        }
       } catch (error) {
         addNotificationLog('❌ Error al enviar notificación de prueba: ' + error.message, 'error');
       }
