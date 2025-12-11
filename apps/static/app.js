@@ -14,6 +14,44 @@ let pageVisited = false;
 let notificationTimer = null;
 
 /**
+ * Agregar log visible en la UI
+ * @param {string} message - Mensaje del log
+ * @param {string} type - Tipo: 'info', 'success', 'warning', 'error'
+ */
+function addNotificationLog(message, type = 'info') {
+    const logContainer = document.getElementById('notification-logs');
+    if (!logContainer) return;
+
+    const timestamp = new Date().toLocaleTimeString('es-AR');
+    const logEntry = document.createElement('div');
+    logEntry.className = 'log-entry border-l-4 p-2 mb-2 text-sm';
+
+    // Colores según el tipo
+    const colors = {
+        info: 'border-blue-500 bg-blue-50 text-blue-800',
+        success: 'border-green-500 bg-green-50 text-green-800',
+        warning: 'border-yellow-500 bg-yellow-50 text-yellow-800',
+        error: 'border-red-500 bg-red-50 text-red-800'
+    };
+
+    logEntry.className += ' ' + (colors[type] || colors.info);
+    logEntry.innerHTML = `<span class="font-mono text-xs text-gray-500">[${timestamp}]</span> ${message}`;
+
+    logContainer.insertBefore(logEntry, logContainer.firstChild);
+
+    // Limitar a 20 logs máximo
+    while (logContainer.children.length > 20) {
+        logContainer.removeChild(logContainer.lastChild);
+    }
+
+    // Auto-scroll al último log
+    logContainer.scrollTop = 0;
+
+    // También logear en consola
+    console.log(`[Notifications ${type}]`, message);
+}
+
+/**
  * Iniciar el escaneo de códigos QR
  */
 async function iniciarEscaneo() {
@@ -993,21 +1031,32 @@ function inicializarMapa(location) {
  */
 async function solicitarPermisoNotificaciones() {
     if (!('Notification' in window)) {
-        console.log('Este navegador no soporta notificaciones');
+        addNotificationLog('❌ Este navegador no soporta notificaciones', 'error');
         return false;
     }
 
+    addNotificationLog('🔍 Verificando permisos de notificaciones...', 'info');
+
     if (Notification.permission === 'granted') {
         notificationPermissionGranted = true;
+        addNotificationLog('✅ Permisos ya concedidos', 'success');
         return true;
     }
 
-    if (Notification.permission !== 'denied') {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            notificationPermissionGranted = true;
-            return true;
-        }
+    if (Notification.permission === 'denied') {
+        addNotificationLog('🚫 Permisos denegados previamente', 'error');
+        return false;
+    }
+
+    addNotificationLog('⏳ Solicitando permisos al usuario...', 'warning');
+    const permission = await Notification.requestPermission();
+
+    if (permission === 'granted') {
+        notificationPermissionGranted = true;
+        addNotificationLog('✅ Permisos concedidos por el usuario', 'success');
+        return true;
+    } else {
+        addNotificationLog('❌ Usuario denegó los permisos', 'error');
     }
 
     return false;
@@ -1018,24 +1067,36 @@ async function solicitarPermisoNotificaciones() {
  */
 function enviarNotificacionBienvenida() {
     if (!notificationPermissionGranted) {
+        addNotificationLog('⚠️ No se puede enviar notificación: permisos no concedidos', 'warning');
         return;
     }
 
     // Solo enviar si el documento no tiene el foco
     if (document.hidden) {
-        const notification = new Notification('¡Bienvenido a GeoQR!', {
-            body: 'La aplicación está lista para escanear códigos QR y obtener tu ubicación.',
-            icon: '/static/icons/android/android-launchericon-192-192.png',
-            badge: '/static/icons/android/android-launchericon-96-96.png',
-            tag: 'bienvenida',
-            requireInteraction: false,
-            silent: false
-        });
+        addNotificationLog('📤 Enviando notificación de bienvenida...', 'info');
 
-        notification.onclick = function () {
-            window.focus();
-            notification.close();
-        };
+        try {
+            const notification = new Notification('¡Bienvenido a GeoQR!', {
+                body: 'La aplicación está lista para escanear códigos QR y obtener tu ubicación.',
+                icon: '/static/icons/android/android-launchericon-192-192.png',
+                badge: '/static/icons/android/android-launchericon-96-96.png',
+                tag: 'bienvenida',
+                requireInteraction: false,
+                silent: false
+            });
+
+            addNotificationLog('✅ Notificación enviada exitosamente', 'success');
+
+            notification.onclick = function () {
+                addNotificationLog('👆 Usuario hizo clic en la notificación', 'info');
+                window.focus();
+                notification.close();
+            };
+        } catch (error) {
+            addNotificationLog('❌ Error al enviar notificación: ' + error.message, 'error');
+        }
+    } else {
+        addNotificationLog('⚠️ No se envió notificación: la app tiene el foco', 'warning');
     }
 }
 
@@ -1043,32 +1104,42 @@ function enviarNotificacionBienvenida() {
  * Inicializar el sistema de notificaciones
  */
 async function inicializarNotificaciones() {
+    addNotificationLog('🚀 Iniciando sistema de notificaciones...', 'info');
+
     // Solicitar permisos
     await solicitarPermisoNotificaciones();
 
     // Marcar que la página ha sido visitada
     pageVisited = true;
+    addNotificationLog('✓ Sistema de notificaciones listo', 'success');
 
     // Escuchar cambios de visibilidad para enviar notificación cuando la página pierda el foco
     document.addEventListener('visibilitychange', () => {
         if (document.hidden && pageVisited && notificationPermissionGranted) {
+            addNotificationLog('👁️ App perdió el foco - programando notificación en 10 segundos...', 'info');
+
             // Cancelar cualquier timer previo
             if (notificationTimer) {
                 clearTimeout(notificationTimer);
+                addNotificationLog('🔄 Timer previo cancelado', 'info');
             }
 
             // Programar notificación para 10 segundos después de perder el foco
             notificationTimer = setTimeout(() => {
                 // Verificar nuevamente que la página siga sin foco
                 if (document.hidden) {
+                    addNotificationLog('⏰ 10 segundos transcurridos - enviando notificación', 'info');
                     enviarNotificacionBienvenida();
+                } else {
+                    addNotificationLog('⚠️ App recuperó el foco antes de enviar notificación', 'warning');
                 }
             }, 10000); // 10 segundos
-        } else {
+        } else if (!document.hidden) {
             // Si la página recupera el foco, cancelar la notificación pendiente
             if (notificationTimer) {
                 clearTimeout(notificationTimer);
                 notificationTimer = null;
+                addNotificationLog('✋ App recuperó el foco - notificación cancelada', 'warning');
             }
         }
     });

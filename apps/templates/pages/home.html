@@ -31,6 +31,20 @@
           </div>
         </div>
 
+        <div>
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-xl font-semibold text-gray-800">Registro de Actividad</h2>
+            <button 
+              onclick="clearLogs()" 
+              class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded transition">
+              🗑️ Limpiar
+            </button>
+          </div>
+          <div id="notification-logs" class="bg-gray-50 rounded p-4 max-h-96 overflow-y-auto border border-gray-200">
+            <div class="text-gray-500 text-sm italic">Esperando eventos...</div>
+          </div>
+        </div>
+
         <button 
           id="test-notification-btn" 
           class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center"
@@ -93,41 +107,63 @@
     async function testNotification() {
       if (!('Notification' in window)) {
         alert('Tu navegador no soporta notificaciones');
+        addNotificationLog('❌ Navegador no soporta notificaciones', 'error');
         return;
       }
 
       if (Notification.permission === 'denied') {
         alert('Los permisos de notificaciones están denegados. Por favor, habilítalos en la configuración del navegador.');
+        addNotificationLog('🚫 Permisos denegados - no se puede enviar notificación de prueba', 'error');
         return;
       }
 
       if (Notification.permission === 'default') {
+        addNotificationLog('⏳ Solicitando permisos para prueba manual...', 'warning');
         const permission = await Notification.requestPermission();
         updateNotificationStatus();
         
         if (permission !== 'granted') {
+          addNotificationLog('❌ Permisos denegados por el usuario', 'error');
           return;
         }
+        addNotificationLog('✅ Permisos concedidos', 'success');
       }
 
       // Enviar notificación de prueba
-      const notification = new Notification('🧪 Notificación de Prueba', {
-        body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
-        icon: '/static/icons/android/android-launchericon-192-192.png',
-        badge: '/static/icons/android/android-launchericon-96-96.png',
-        tag: 'test-notification',
-        requireInteraction: false,
-        vibrate: [200, 100, 200]
-      });
+      addNotificationLog('🧪 Enviando notificación de prueba MANUAL...', 'info');
+      try {
+        const notification = new Notification('🧪 Notificación de Prueba', {
+          body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+          icon: '/static/icons/android/android-launchericon-192-192.png',
+          badge: '/static/icons/android/android-launchericon-96-96.png',
+          tag: 'test-notification',
+          requireInteraction: false,
+          vibrate: [200, 100, 200]
+        });
 
-      notification.onclick = function() {
-        window.focus();
-        notification.close();
-      };
+        addNotificationLog('✅ Notificación de prueba enviada', 'success');
+
+        notification.onclick = function() {
+          addNotificationLog('👆 Click en notificación de prueba', 'info');
+          window.focus();
+          notification.close();
+        };
+      } catch (error) {
+        addNotificationLog('❌ Error al enviar notificación de prueba: ' + error.message, 'error');
+      }
     }
 
     // Actualizar estado inicial
     updateNotificationStatus();
+
+    // Función para limpiar los logs
+    function clearLogs() {
+      const logContainer = document.getElementById('notification-logs');
+      if (logContainer) {
+        logContainer.innerHTML = '<div class="text-gray-500 text-sm italic">Logs limpiados - esperando eventos...</div>';
+        addNotificationLog('🧹 Logs limpiados por el usuario', 'info');
+      }
+    }
 
     // Actualizar estado cuando cambien los permisos
     if ('permissions' in navigator) {
