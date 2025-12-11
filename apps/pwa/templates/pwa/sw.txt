@@ -24,6 +24,25 @@ const offlineFallbackPage = '/offline.html';
 const OFFLINE_PAGE = offlineFallbackPage;  // Alias para compatibilidad
 const SERVER_ERROR_PAGE = '/server-error.html';
 
+// Rutas que NUNCA deben cachearse (requieren CSRF tokens y autenticación)
+// Estas rutas siempre irán directo a la red para evitar problemas con:
+// - CSRF tokens que cambian en cada request
+// - Sesiones de autenticación
+// - Formularios con datos sensibles
+// - APIs que requieren tokens frescos
+const NEVER_CACHE_PATHS = [
+  '/accounts/',           // Django-allauth (login, signup, logout, etc.)
+  '/admin/',             // Django admin
+  '/api/',               // APIs que requieren autenticación
+  '/__debug__/',         // Django debug toolbar
+];
+
+// Función para verificar si una URL debe ser excluida del cache
+function shouldNeverCache(url) {
+  const urlPath = new URL(url).pathname;
+  return NEVER_CACHE_PATHS.some(path => urlPath.startsWith(path));
+}
+
 // Importar Workbox desde CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
 
@@ -178,8 +197,19 @@ if (workbox.navigationPreload.isSupported()) {
 
 // Estrategia StaleWhileRevalidate de Workbox para recursos estáticos
 // Sirve desde caché inmediatamente mientras actualiza en segundo plano
+// SOLO para GET requests (no POST, PUT, DELETE que requieren CSRF)
 workbox.routing.registerRoute(
   ({ request, url }) => {
+    // Solo GET requests
+    if (request.method !== 'GET') {
+      return false;
+    }
+    
+    // Excluir rutas protegidas
+    if (shouldNeverCache(url.href)) {
+      return false;
+    }
+    
     // Solo para recursos del mismo origen o CDNs permitidos
     return url.origin === self.location.origin || 
            ALLOWED_CDNS.some(host => url.hostname.includes(host));
@@ -193,6 +223,14 @@ workbox.routing.registerRoute(
 // Offline page + Offline copy of pages strategy (PWABuilder compliant)
 // This follows the pattern required by PWABuilder and similar PWA detection tools
 self.addEventListener('fetch', (event) => {
+  // NUNCA cachear rutas de autenticación, admin, o APIs
+  if (shouldNeverCache(event.request.url)) {
+    if (DEBUG) console.log('Service Worker: Bypass cache para', event.request.url);
+    // Pasar directamente a la red sin cachear
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   if (event.request.mode === 'navigate') {
     event.respondWith((async () => {
       try {
@@ -200,17 +238,20 @@ self.addEventListener('fetch', (event) => {
         const preloadResp = await event.preloadResponse;
 
         if (preloadResp) {
-          // Cache the preload response for offline access
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, preloadResp.clone());
+          // Cache the preload response for offline access (excepto rutas protegidas)
+          if (!shouldNeverCache(event.request.url)) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(event.request, preloadResp.clone());
+          }
           return preloadResp;
         }
 
-        // Try network request
+        // NETWORK FIRST: Siempre intentar red primero para navegación
         const networkResp = await fetch(event.request);
         
         // Cache successful navigation responses for offline access
-        if (networkResp && networkResp.ok) {
+        // Solo si no es una ruta protegida
+        if (networkResp && networkResp.ok && !shouldNeverCache(event.request.url)) {
           const cache = await caches.open(CACHE_NAME);
           cache.put(event.request, networkResp.clone());
         }
