@@ -1084,6 +1084,12 @@ async function solicitarPermisoNotificaciones() {
  * });
  */
 async function enviarNotificacion(title, options) {
+    // Verificar permisos antes de intentar enviar
+    if (Notification.permission !== 'granted') {
+        addNotificationLog('⚠️ No se puede enviar notificación: permisos no concedidos', 'warning');
+        throw new Error('No notification permission has been granted');
+    }
+
     try {
         // Si hay Service Worker activo, usar showNotification
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {

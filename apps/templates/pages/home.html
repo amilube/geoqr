@@ -161,6 +161,13 @@
         addNotificationLog('✅ Permisos concedidos', 'success');
       }
 
+      // Verificar una vez más antes de enviar
+      if (Notification.permission !== 'granted') {
+        addNotificationLog('❌ Los permisos no están concedidos', 'error');
+        alert('Por favor, acepta los permisos de notificaciones primero.');
+        return;
+      }
+
       // Enviar notificación de prueba
       addNotificationLog('🧪 Enviando notificación de prueba MANUAL...', 'info');
       try {
