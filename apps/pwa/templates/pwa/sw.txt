@@ -363,19 +363,44 @@ self.addEventListener('push', (event) => {
 // Click en notificaciones
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = event.notification.data.url || '/';
+  const data = event.notification.data || {};
+  const targetUrl = data.url || '/';
+  const origin = data.origin || self.location.origin;
+  const protocolUrl = data.protocolUrl;
+  
+  if (DEBUG) console.log('Service Worker: Notification click', { protocolUrl, targetUrl, origin });
   
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clientList) => {
-      // Buscar si ya hay una ventana abierta con esa URL
+    clients.matchAll({ 
+      type: 'window',
+      includeUncontrolled: true 
+    }).then((clientList) => {
+      // Primero intentar enfocar cualquier cliente existente del mismo origen
       for (let client of clientList) {
-        if (client.url === url && 'focus' in client) {
+        if (client.url.startsWith(origin) && 'focus' in client) {
+          if (DEBUG) console.log('Service Worker: Enfocando cliente existente', client.url);
+          // Si hay una ruta específica, navegar a ella
+          if (targetUrl !== '/') {
+            client.postMessage({
+              type: 'NAVIGATE',
+              url: targetUrl
+            });
+          }
           return client.focus();
         }
       }
-      // Si no existe, abrir una nueva
+      
+      // Si no hay cliente existente, intentar usar protocol handler primero
       if (clients.openWindow) {
-        return clients.openWindow(url);
+        // En PWAs instaladas, el protocol handler funciona mejor para deep linking
+        const urlToOpen = protocolUrl || (origin + targetUrl);
+        if (DEBUG) console.log('Service Worker: Abriendo', urlToOpen);
+        
+        return clients.openWindow(urlToOpen).catch((error) => {
+          // Fallback a URL normal si el protocol handler falla
+          if (DEBUG) console.log('Service Worker: Protocol handler falló, usando URL normal', error);
+          return clients.openWindow(origin + targetUrl);
+        });
       }
     })
   );

@@ -1066,6 +1066,19 @@ async function solicitarPermisoNotificaciones() {
  * Enviar una notificación (compatible con Service Worker)
  * @param {string} title - Título de la notificación
  * @param {Object} options - Opciones de la notificación
+ * @param {Object} options.data - Datos adicionales
+ * @param {string} options.data.path - Ruta para deep linking (ej: 'scan', 'settings')
+ * 
+ * @example
+ * // Notificación que abre la home
+ * enviarNotificacion('Bienvenido', { body: 'Hola' });
+ * 
+ * @example
+ * // Notificación que abre el scanner (deep link)
+ * enviarNotificacion('Nuevo QR', { 
+ *   body: 'Hay un código QR esperando',
+ *   data: { path: 'scan' }
+ * });
  */
 async function enviarNotificacion(title, options) {
     try {
@@ -1073,17 +1086,26 @@ async function enviarNotificacion(title, options) {
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
             const registration = await navigator.serviceWorker.ready;
 
+            // Usar protocol handler para mejor integración nativa
+            const targetPath = options.data?.path || '';
+            const protocolUrl = targetPath ? `web+geoqr://${targetPath}` : 'web+geoqr://home';
+
             // Agregar data.url para que el Service Worker maneje el click correctamente
             const swOptions = {
                 ...options,
+                // Usar SVG para badge (monocromo) en lugar de PNG
+                badge: '/static/icons/icon.svg',
                 data: {
-                    url: window.location.origin + '/',
+                    url: '/',
+                    protocolUrl: protocolUrl,
+                    origin: window.location.origin,
+                    timestamp: Date.now(),
                     ...options.data
                 }
             };
 
             await registration.showNotification(title, swOptions);
-            addNotificationLog('✅ Notificación enviada vía Service Worker', 'success');
+            addNotificationLog('✅ Notificación enviada vía Service Worker (protocol: ' + protocolUrl + ')', 'success');
         } else {
             // Si no hay Service Worker, usar el constructor tradicional
             const notification = new Notification(title, options);
@@ -1118,7 +1140,6 @@ async function enviarNotificacionBienvenida() {
             await enviarNotificacion('¡Bienvenido a GeoQR!', {
                 body: 'La aplicación está lista para escanear códigos QR y obtener tu ubicación.',
                 icon: '/static/icons/android/android-launchericon-192-192.png',
-                badge: '/static/icons/android/android-launchericon-96-96.png',
                 tag: 'bienvenida',
                 requireInteraction: false,
                 silent: false
@@ -1181,4 +1202,17 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', inicializarNotificaciones);
 } else {
     inicializarNotificaciones();
+}
+
+// Escuchar mensajes del Service Worker para navegación
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'NAVIGATE') {
+            const targetUrl = event.data.url;
+            if (targetUrl && targetUrl !== window.location.pathname) {
+                addNotificationLog('📍 Navegando a: ' + targetUrl, 'info');
+                window.location.href = targetUrl;
+            }
+        }
+    });
 }
