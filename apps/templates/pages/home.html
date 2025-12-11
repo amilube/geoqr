@@ -170,17 +170,16 @@
           addNotificationLog('❌ Permisos denegados por el usuario', 'error');
           return;
         }
+        
+        // Actualizar variable global en app.js si está disponible
+        if (typeof notificationPermissionGranted !== 'undefined') {
+          window.notificationPermissionGranted = true;
+        }
+        
         addNotificationLog('✅ Permisos concedidos', 'success');
       }
 
-      // Verificar una vez más antes de enviar
-      if (Notification.permission !== 'granted') {
-        addNotificationLog('❌ Los permisos no están concedidos', 'error');
-        alert('Por favor, acepta los permisos de notificaciones primero.');
-        return;
-      }
-
-      // Enviar notificación de prueba
+      // Enviar notificación de prueba (enviarNotificacion verificará permisos internamente)
       addNotificationLog('🧪 Enviando notificación de prueba MANUAL...', 'info');
       try {
         // Usar la función global de app.js que maneja Service Worker

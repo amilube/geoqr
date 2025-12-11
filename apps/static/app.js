@@ -1063,6 +1063,14 @@ async function solicitarPermisoNotificaciones() {
         if (permission === 'granted') {
             notificationPermissionGranted = true;
             addNotificationLog('✅ Permisos concedidos por el usuario', 'success');
+
+            // Forzar re-verificación después de un breve delay para asegurar sincronización
+            setTimeout(() => {
+                const recheck = Notification.permission;
+                notificationPermissionGranted = (recheck === 'granted');
+                if (DEBUG) console.log('🔄 Re-verificación de permisos:', recheck);
+            }, 100);
+
             return true;
         } else {
             notificationPermissionGranted = false;
