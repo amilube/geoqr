@@ -8,6 +8,11 @@ let map = null;
 let marker = null;
 let userLocation = null;
 
+// Variables para el manejo de notificaciones
+let notificationPermissionGranted = false;
+let pageVisited = false;
+let notificationTimer = null;
+
 /**
  * Iniciar el escaneo de códigos QR
  */
@@ -981,4 +986,97 @@ function inicializarMapa(location) {
 
     // Mostrar el InfoWindow automáticamente al cargar
     infoWindow.open(map, marker);
+}
+
+/**
+ * Solicitar permisos de notificaciones al usuario
+ */
+async function solicitarPermisoNotificaciones() {
+    if (!('Notification' in window)) {
+        console.log('Este navegador no soporta notificaciones');
+        return false;
+    }
+
+    if (Notification.permission === 'granted') {
+        notificationPermissionGranted = true;
+        return true;
+    }
+
+    if (Notification.permission !== 'denied') {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            notificationPermissionGranted = true;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Enviar una notificación de bienvenida
+ */
+function enviarNotificacionBienvenida() {
+    if (!notificationPermissionGranted) {
+        return;
+    }
+
+    // Solo enviar si el documento no tiene el foco
+    if (document.hidden) {
+        const notification = new Notification('¡Bienvenido a GeoQR!', {
+            body: 'La aplicación está lista para escanear códigos QR y obtener tu ubicación.',
+            icon: '/static/icons/android/android-launchericon-192-192.png',
+            badge: '/static/icons/android/android-launchericon-96-96.png',
+            tag: 'bienvenida',
+            requireInteraction: false,
+            silent: false
+        });
+
+        notification.onclick = function () {
+            window.focus();
+            notification.close();
+        };
+    }
+}
+
+/**
+ * Inicializar el sistema de notificaciones
+ */
+async function inicializarNotificaciones() {
+    // Solicitar permisos
+    await solicitarPermisoNotificaciones();
+
+    // Marcar que la página ha sido visitada
+    pageVisited = true;
+
+    // Escuchar cambios de visibilidad para enviar notificación cuando la página pierda el foco
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && pageVisited && notificationPermissionGranted) {
+            // Cancelar cualquier timer previo
+            if (notificationTimer) {
+                clearTimeout(notificationTimer);
+            }
+
+            // Programar notificación para 10 segundos después de perder el foco
+            notificationTimer = setTimeout(() => {
+                // Verificar nuevamente que la página siga sin foco
+                if (document.hidden) {
+                    enviarNotificacionBienvenida();
+                }
+            }, 10000); // 10 segundos
+        } else {
+            // Si la página recupera el foco, cancelar la notificación pendiente
+            if (notificationTimer) {
+                clearTimeout(notificationTimer);
+                notificationTimer = null;
+            }
+        }
+    });
+}
+
+// Inicializar notificaciones cuando la página cargue
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', inicializarNotificaciones);
+} else {
+    inicializarNotificaciones();
 }

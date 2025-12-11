@@ -2,5 +2,142 @@
 
 
  {% block content %}
-  <p>HOME: Esta app evalúa capacidades de implementación en dispositivos móviles.</p>
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h1 class="text-3xl font-bold text-gray-900 mb-4">Bienvenido a GeoQR</h1>
+      <p class="text-gray-700 mb-4">Esta app evalúa capacidades de implementación en dispositivos móviles.</p>
+      
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-blue-700">
+              <strong>Notificaciones activadas:</strong> Al cargar esta página, se solicitarán permisos de notificaciones. 
+              Para probar, cambia de pestaña o minimiza la app y <strong>espera 10 segundos</strong> para recibir una notificación de bienvenida.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800 mb-2">Estado de Notificaciones</h2>
+          <div id="notification-status" class="bg-gray-100 rounded p-4 font-mono text-sm">
+            Verificando permisos...
+          </div>
+        </div>
+
+        <button 
+          id="test-notification-btn" 
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center"
+          onclick="testNotification()">
+          <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          Probar Notificación
+        </button>
+
+        <div class="text-sm text-gray-600">
+          <p class="mb-2"><strong>Instrucciones para probar:</strong></p>
+          <ol class="list-decimal list-inside space-y-1 ml-2">
+            <li>Acepta los permisos de notificaciones cuando se soliciten</li>
+            <li>Cambia a otra pestaña o minimiza la ventana</li>
+            <li><strong>Espera 10 segundos</strong> y verás la notificación en tu sistema</li>
+            <li>Haz clic en la notificación para volver a la app</li>
+            <li>Si vuelves a la app antes de los 10 segundos, la notificación se cancelará</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Actualizar el estado de notificaciones en la UI
+    function updateNotificationStatus() {
+      const statusDiv = document.getElementById('notification-status');
+      
+      if (!('Notification' in window)) {
+        statusDiv.innerHTML = '❌ Este navegador no soporta notificaciones';
+        statusDiv.classList.add('bg-red-100', 'text-red-800');
+        return;
+      }
+
+      const permission = Notification.permission;
+      let statusText = '';
+      let bgColor = '';
+      
+      switch(permission) {
+        case 'granted':
+          statusText = '✅ Permisos concedidos - Las notificaciones están activas';
+          bgColor = 'bg-green-100 text-green-800';
+          break;
+        case 'denied':
+          statusText = '❌ Permisos denegados - Por favor, habilita las notificaciones en la configuración del navegador';
+          bgColor = 'bg-red-100 text-red-800';
+          break;
+        case 'default':
+          statusText = '⏳ Esperando respuesta - Se solicitarán permisos automáticamente';
+          bgColor = 'bg-yellow-100 text-yellow-800';
+          break;
+      }
+      
+      statusDiv.innerHTML = statusText;
+      statusDiv.className = 'rounded p-4 font-mono text-sm ' + bgColor;
+    }
+
+    // Función para probar notificaciones manualmente
+    async function testNotification() {
+      if (!('Notification' in window)) {
+        alert('Tu navegador no soporta notificaciones');
+        return;
+      }
+
+      if (Notification.permission === 'denied') {
+        alert('Los permisos de notificaciones están denegados. Por favor, habilítalos en la configuración del navegador.');
+        return;
+      }
+
+      if (Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        updateNotificationStatus();
+        
+        if (permission !== 'granted') {
+          return;
+        }
+      }
+
+      // Enviar notificación de prueba
+      const notification = new Notification('🧪 Notificación de Prueba', {
+        body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+        icon: '/static/icons/android/android-launchericon-192-192.png',
+        badge: '/static/icons/android/android-launchericon-96-96.png',
+        tag: 'test-notification',
+        requireInteraction: false,
+        vibrate: [200, 100, 200]
+      });
+
+      notification.onclick = function() {
+        window.focus();
+        notification.close();
+      };
+    }
+
+    // Actualizar estado inicial
+    updateNotificationStatus();
+
+    // Actualizar estado cuando cambien los permisos
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
+        permissionStatus.onchange = function() {
+          updateNotificationStatus();
+        };
+      }).catch(function(error) {
+        console.log('No se pudo consultar el estado de permisos:', error);
+      });
+    }
+  </script>
 {% endblock content %}
