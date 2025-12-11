@@ -5,7 +5,7 @@
         ],
         "target": {
             "namespace": "android_app",
-            "package_name": "com.dumanity.geoqr",
+            "package_name": "com.dumanity.geoqr_v2",
             "sha256_cert_fingerprints": [
                 "B6:FA:83:C3:88:F5:9C:41:06:7F:09:52:0E:92:15:7B:44:00:74:58:90:C6:96:7F:A2:64:3C:39:8B:24:31:EF"
             ]
