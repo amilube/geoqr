@@ -2,7 +2,7 @@
   "name": "GeoQR",
   "short_name": "GeoQR",
   "scope": "/",
-  "start_url": "/home/",
+  "start_url": "/",
   "display": "standalone",
   "display_override": [
     "window-controls-overlay",
