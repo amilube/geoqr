@@ -60,7 +60,7 @@
       "purpose": "any"
     },
     {
-      "src": "/static/icons/monochrome-1024.png",
+      "src": "/static/icons/qeoqr_icon_monochrome.svg",
       "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "monochrome maskable"

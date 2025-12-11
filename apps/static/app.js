@@ -1105,7 +1105,7 @@ async function enviarNotificacion(title, options) {
                 // Asegurar que body está presente
                 body: options.body || '',
                 // Usar SVG para badge (monocromo) en lugar de PNG
-                badge: '/static/icons/icon.svg',
+                badge: '/static/icons/qeoqr_icon_monochrome.svg',
                 icon: options.icon || '/static/icons/android/android-launchericon-192-192.png',
                 data: {
                     url: '/',
