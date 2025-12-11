@@ -1064,12 +1064,14 @@ async function solicitarPermisoNotificaciones() {
             notificationPermissionGranted = true;
             addNotificationLog('✅ Permisos concedidos por el usuario', 'success');
 
-            // Forzar re-verificación después de un breve delay para asegurar sincronización
-            setTimeout(() => {
-                const recheck = Notification.permission;
-                notificationPermissionGranted = (recheck === 'granted');
-                if (DEBUG) console.log('🔄 Re-verificación de permisos:', recheck);
-            }, 100);
+            // Esperar para que el Service Worker se sincronice con el nuevo estado de permisos
+            // El SW necesita tiempo para detectar el cambio de permisos
+            await new Promise(resolve => setTimeout(resolve, 200));
+
+            // Re-verificar estado
+            const recheck = Notification.permission;
+            notificationPermissionGranted = (recheck === 'granted');
+            if (DEBUG) console.log('🔄 Re-verificación de permisos tras delay:', recheck);
 
             return true;
         } else {
@@ -1120,11 +1122,21 @@ async function enviarNotificacion(title, options) {
                 addNotificationLog('❌ No se pudo enviar: permisos rechazados', 'error');
                 throw new Error('No notification permission has been granted');
             }
-            // Si llegamos aquí, los permisos fueron concedidos, continuar con envío
+
+            // CRÍTICO: Espera adicional para que el Service Worker detecte el cambio
+            // La espera en solicitarPermisoNotificaciones() no es suficiente
+            addNotificationLog('⏳ Esperando sincronización con Service Worker...', 'info');
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Permisos concedidos exitosamente
+            addNotificationLog('✅ Permisos verificados - continuando con envío...', 'success');
         } else if (currentPermission === 'denied') {
             addNotificationLog('❌ No se pudo enviar: permisos previamente denegados', 'error');
             throw new Error('Notification permission was denied');
         }
+    } else {
+        // Permisos ya concedidos
+        if (DEBUG) console.log('✅ Permisos ya concedidos, procediendo a enviar notificación');
     }
 
     try {
@@ -1160,6 +1172,7 @@ async function enviarNotificacion(title, options) {
                 console.log('Body:', swOptions.body);
                 console.log('Icon:', swOptions.icon);
                 console.log('Badge:', swOptions.badge);
+                console.log('Notification.permission justo antes de showNotification:', Notification.permission);
             }
 
             await registration.showNotification(title, swOptions);

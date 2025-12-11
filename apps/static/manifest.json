@@ -61,9 +61,9 @@
     },
     {
       "src": "/static/icons/qeoqr_icon_monochrome.svg",
-      "sizes": "1024x1024",
-      "type": "image/png",
-      "purpose": "monochrome maskable"
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "monochrome"
     },
     {
       "src": "/static/icons/windows11/SmallTile.scale-100.png",
