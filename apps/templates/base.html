@@ -41,6 +41,10 @@
   <!-- Your stuff: Third-party javascript libraries go here -->
   <!-- Alpine.js for UI interactions -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- PWA Detection -->
+  <script src="{% static 'js/pwa-detection.js' %}"></script>
+  
   {% compress js %}
     <script defer src="{% static 'js/project.js' %}"></script>
   {% endcompress %}

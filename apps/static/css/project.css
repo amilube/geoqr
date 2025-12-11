@@ -6,6 +6,37 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/* PWA Environment Styles */
+body.pwa-installed {
+  /* Estilos específicos para PWA instalada */
+}
+
+body.pwa-twa {
+  /* Estilos específicos para TWA (Android app) */
+}
+
+body.pwa-browser {
+  /* Estilos específicos para navegador */
+}
+
+/* Ocultar elementos solo en PWA instalada */
+.browser-only {
+  display: block;
+}
+
+body.pwa-installed .browser-only {
+  display: none;
+}
+
+/* Mostrar elementos solo en PWA instalada */
+.pwa-only {
+  display: none;
+}
+
+body.pwa-installed .pwa-only {
+  display: block;
+}
+
 .alert-debug {
   color: black;
   background-color: white;
