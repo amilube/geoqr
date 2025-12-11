@@ -28,9 +28,21 @@
 
       <div class="space-y-4">
         <div>
-          <h2 class="text-xl font-semibold text-gray-800 mb-2">Estado de Notificaciones</h2>
+          <h2 class="text-xl font-semibold text-gray-800 mb-2">Notificaciones Locales</h2>
           <div id="notification-status" class="bg-gray-100 rounded p-4 font-mono text-sm">
             Verificando permisos...
+          </div>
+          <p class="text-xs text-gray-500 mt-2">
+            ℹ️ Las notificaciones locales no requieren VAPID. Se envían directamente desde el navegador.
+          </p>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800 mb-2">Web Push (Próximamente)</h2>
+          <div class="bg-yellow-50 border border-yellow-200 rounded p-4 text-sm">
+            <p class="text-yellow-800">
+              🚧 Web Push con VAPID estará disponible próximamente usando <code class="bg-yellow-100 px-1 rounded">django-push-notifications[WP]</code>
+            </p>
           </div>
         </div>
 

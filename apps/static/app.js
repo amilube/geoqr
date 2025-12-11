@@ -1031,6 +1031,7 @@ function inicializarMapa(location) {
 
 /**
  * Solicitar permisos de notificaciones al usuario
+ * Este es independiente de Web Push/VAPID - solo permisos de notificación del navegador
  */
 async function solicitarPermisoNotificaciones() {
     if (!('Notification' in window)) {
@@ -1040,29 +1041,38 @@ async function solicitarPermisoNotificaciones() {
 
     addNotificationLog('🔍 Verificando permisos de notificaciones...', 'info');
 
-    if (Notification.permission === 'granted') {
+    // Verificar estado actual
+    const currentPermission = Notification.permission;
+
+    if (currentPermission === 'granted') {
         notificationPermissionGranted = true;
         addNotificationLog('✅ Permisos ya concedidos', 'success');
         return true;
     }
 
-    if (Notification.permission === 'denied') {
+    if (currentPermission === 'denied') {
         addNotificationLog('🚫 Permisos denegados previamente', 'error');
         return false;
     }
 
-    addNotificationLog('⏳ Solicitando permisos al usuario...', 'warning');
-    const permission = await Notification.requestPermission();
+    // Si es 'default', solicitar permisos
+    try {
+        addNotificationLog('⏳ Solicitando permisos al usuario...', 'warning');
+        const permission = await Notification.requestPermission();
 
-    if (permission === 'granted') {
-        notificationPermissionGranted = true;
-        addNotificationLog('✅ Permisos concedidos por el usuario', 'success');
-        return true;
-    } else {
-        addNotificationLog('❌ Usuario denegó los permisos', 'error');
+        if (permission === 'granted') {
+            notificationPermissionGranted = true;
+            addNotificationLog('✅ Permisos concedidos por el usuario', 'success');
+            return true;
+        } else {
+            notificationPermissionGranted = false;
+            addNotificationLog('❌ Usuario denegó los permisos', 'error');
+            return false;
+        }
+    } catch (error) {
+        addNotificationLog('❌ Error al solicitar permisos: ' + error.message, 'error');
+        return false;
     }
-
-    return false;
 }
 
 /**
@@ -1085,9 +1095,28 @@ async function solicitarPermisoNotificaciones() {
  */
 async function enviarNotificacion(title, options) {
     // Verificar permisos antes de intentar enviar
-    if (Notification.permission !== 'granted') {
-        addNotificationLog('⚠️ No se puede enviar notificación: permisos no concedidos', 'warning');
-        throw new Error('No notification permission has been granted');
+    const currentPermission = Notification.permission;
+
+    if (DEBUG) {
+        console.log('=== VERIFICACIÓN DE PERMISOS ===');
+        console.log('Notification.permission:', currentPermission);
+        console.log('notificationPermissionGranted:', notificationPermissionGranted);
+    }
+
+    if (currentPermission !== 'granted') {
+        // Intentar solicitar permisos si aún no se han solicitado
+        if (currentPermission === 'default') {
+            addNotificationLog('🔄 Solicitando permisos para enviar notificación...', 'info');
+            const granted = await solicitarPermisoNotificaciones();
+            if (!granted) {
+                addNotificationLog('❌ No se pudo enviar: permisos rechazados', 'error');
+                throw new Error('No notification permission has been granted');
+            }
+            // Si llegamos aquí, los permisos fueron concedidos, continuar con envío
+        } else if (currentPermission === 'denied') {
+            addNotificationLog('❌ No se pudo enviar: permisos previamente denegados', 'error');
+            throw new Error('Notification permission was denied');
+        }
     }
 
     try {
@@ -1126,11 +1155,15 @@ async function enviarNotificacion(title, options) {
             }
 
             await registration.showNotification(title, swOptions);
-            addNotificationLog('✅ Notificación enviada vía Service Worker (protocol: ' + protocolUrl + ')', 'success');
+            addNotificationLog(`✅ Notificación enviada vía Service Worker`, 'success');
+            addNotificationLog(`   📋 Título: "${title}"`, 'info');
+            addNotificationLog(`   📋 Body: "${swOptions.body}"`, 'info');
+            addNotificationLog(`   🔗 Protocol: ${protocolUrl}`, 'info');
         } else {
             // Si no hay Service Worker, usar el constructor tradicional
             const notification = new Notification(title, options);
-            addNotificationLog('✅ Notificación enviada directamente', 'success');
+            addNotificationLog(`✅ Notificación enviada directamente`, 'success');
+            addNotificationLog(`   📋 Título: "${title}"`, 'info');
 
             notification.onclick = function () {
                 addNotificationLog('👆 Usuario hizo clic en la notificación', 'info');
@@ -1148,8 +1181,11 @@ async function enviarNotificacion(title, options) {
  * Enviar una notificación de bienvenida
  */
 async function enviarNotificacionBienvenida() {
-    if (!notificationPermissionGranted) {
-        addNotificationLog('⚠️ No se puede enviar notificación: permisos no concedidos', 'warning');
+    // Verificar permisos en tiempo real (no confiar solo en la variable)
+    const currentPermission = Notification.permission;
+
+    if (currentPermission !== 'granted') {
+        addNotificationLog(`⚠️ No se puede enviar notificación: permisos ${currentPermission}`, 'warning');
         return;
     }
 
@@ -1175,12 +1211,20 @@ async function enviarNotificacionBienvenida() {
 
 /**
  * Inicializar el sistema de notificaciones
+ * Nota: Este sistema es independiente de Web Push/VAPID
  */
 async function inicializarNotificaciones() {
-    addNotificationLog('🚀 Iniciando sistema de notificaciones...', 'info');
+    addNotificationLog('🚀 Iniciando sistema de notificaciones locales...', 'info');
+    addNotificationLog('ℹ️ Web Push/VAPID se configurará por separado', 'info');
 
-    // Solicitar permisos
-    await solicitarPermisoNotificaciones();
+    // Solicitar permisos de notificación (no requiere VAPID)
+    const granted = await solicitarPermisoNotificaciones();
+
+    if (granted) {
+        addNotificationLog('✅ Notificaciones locales habilitadas', 'success');
+    } else {
+        addNotificationLog('⚠️ Notificaciones locales no disponibles', 'warning');
+    }
 
     // Marcar que la página ha sido visitada
     pageVisited = true;
@@ -1188,7 +1232,11 @@ async function inicializarNotificaciones() {
 
     // Escuchar cambios de visibilidad para enviar notificación cuando la página pierda el foco
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden && pageVisited && notificationPermissionGranted) {
+        // Verificar permisos en tiempo real
+        const currentPermission = Notification.permission;
+        const hasPermission = (currentPermission === 'granted');
+
+        if (document.hidden && pageVisited && hasPermission) {
             addNotificationLog('👁️ App perdió el foco - programando notificación en 10 segundos...', 'info');
 
             // Cancelar cualquier timer previo
@@ -1207,6 +1255,8 @@ async function inicializarNotificaciones() {
                     addNotificationLog('⚠️ App recuperó el foco antes de enviar notificación', 'warning');
                 }
             }, 10000); // 10 segundos
+        } else if (document.hidden && !hasPermission) {
+            addNotificationLog(`⚠️ App perdió el foco pero permisos no concedidos (${currentPermission})`, 'warning');
         } else if (!document.hidden) {
             // Si la página recupera el foco, cancelar la notificación pendiente
             if (notificationTimer) {
