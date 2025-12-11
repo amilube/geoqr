@@ -1,6 +1,9 @@
 // app.js - Lógica principal de la aplicación Dumanity
 // Aplicación de escaneo de códigos QR con extracción y visualización de URLs
 
+// Debug mode (establecer a true para ver logs detallados)
+const DEBUG = true;
+
 let html5QrCode = null;
 let scanningActive = false;
 let detectedURL = '';
@@ -1093,8 +1096,11 @@ async function enviarNotificacion(title, options) {
             // Agregar data.url para que el Service Worker maneje el click correctamente
             const swOptions = {
                 ...options,
+                // Asegurar que body está presente
+                body: options.body || '',
                 // Usar SVG para badge (monocromo) en lugar de PNG
                 badge: '/static/icons/icon.svg',
+                icon: options.icon || '/static/icons/android/android-launchericon-192-192.png',
                 data: {
                     url: '/',
                     protocolUrl: protocolUrl,
@@ -1103,6 +1109,15 @@ async function enviarNotificacion(title, options) {
                     ...options.data
                 }
             };
+
+            if (DEBUG) {
+                console.log('=== DEBUG NOTIFICACIÓN ===');
+                console.log('Título:', title);
+                console.log('Opciones completas:', swOptions);
+                console.log('Body:', swOptions.body);
+                console.log('Icon:', swOptions.icon);
+                console.log('Badge:', swOptions.badge);
+            }
 
             await registration.showNotification(title, swOptions);
             addNotificationLog('✅ Notificación enviada vía Service Worker (protocol: ' + protocolUrl + ')', 'success');
