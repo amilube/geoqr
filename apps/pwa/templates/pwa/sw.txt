@@ -407,9 +407,8 @@ self.addEventListener('notificationclick', (event) => {
   const data = event.notification.data || {};
   const targetUrl = data.url || '/';
   const origin = data.origin || self.location.origin;
-  const protocolUrl = data.protocolUrl;
   
-  if (DEBUG) console.log('Service Worker: Notification click', { protocolUrl, targetUrl, origin });
+  if (DEBUG) console.log('Service Worker: Notification click', { targetUrl, origin });
   
   event.waitUntil(
     clients.matchAll({ 
@@ -431,17 +430,14 @@ self.addEventListener('notificationclick', (event) => {
         }
       }
       
-      // Si no hay cliente existente, intentar usar protocol handler primero
+      // Si no hay cliente existente, abrir una ventana nueva
       if (clients.openWindow) {
-        // En PWAs instaladas, el protocol handler funciona mejor para deep linking
-        const urlToOpen = protocolUrl || (origin + targetUrl);
-        if (DEBUG) console.log('Service Worker: Abriendo', urlToOpen);
+        // IMPORTANTE: Usar siempre URLs del mismo origen para que se abra en la PWA
+        // y no en Chrome. Construir la URL completa con el origen.
+        const fullUrl = new URL(targetUrl, origin).href;
+        if (DEBUG) console.log('Service Worker: Abriendo nueva ventana PWA', fullUrl);
         
-        return clients.openWindow(urlToOpen).catch((error) => {
-          // Fallback a URL normal si el protocol handler falla
-          if (DEBUG) console.log('Service Worker: Protocol handler falló, usando URL normal', error);
-          return clients.openWindow(origin + targetUrl);
-        });
+        return clients.openWindow(fullUrl);
       }
     })
   );
