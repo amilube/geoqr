@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+  <!-- Cargar app.js para las funciones de notificaciones -->
+  <script src="{% static 'app.js' %}"></script>
+
+  <div class="max-w-6xl mx-auto space-y-8">
+    <section class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl shadow-lg px-8 py-10">
+      <div class="flex flex-col gap-3">
+        <p class="uppercase tracking-wide text-sm font-semibold text-blue-100">Notificaciones Push</p>
+        <h1 class="text-4xl font-extrabold">Prueba de permisos y envíos locales</h1>
+        <p class="text-blue-100 max-w-3xl">Solicita permisos, revisa el entorno PWA y dispara notificaciones locales desde el navegador o el Service Worker.</p>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Estado y pruebas</h2>
+          <p class="text-gray-600">Usa este panel para validar permisos, entorno y flujo de envío.</p>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Estado de permisos</h3>
+            <div id="notification-status" class="bg-gray-100 rounded p-4 font-mono text-sm">Verificando permisos...</div>
+            <p class="text-xs text-gray-500 mt-2">Las notificaciones locales se envían directamente desde el navegador sin servidor.</p>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Entorno de ejecución</h3>
+            <div id="pwa-environment" class="bg-gray-100 rounded p-4 text-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold">Tipo:</span>
+                  <span id="env-type" class="font-mono">Detectando...</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold">Plataforma:</span>
+                  <span id="env-platform" class="font-mono">-</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold">Display Mode:</span>
+                  <span id="env-display" class="font-mono">-</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold">Instalada:</span>
+                  <span id="env-installed" class="font-mono">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <button id="test-notification-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center" onclick="testNotification()">
+            <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            Probar notificación
+          </button>
+          <div class="text-sm text-gray-600">
+            <p class="mb-2 font-semibold">Cómo probar:</p>
+            <ol class="list-decimal list-inside space-y-1 ml-2">
+              <li>Acepta los permisos cuando se soliciten.</li>
+              <li>Cambia a otra pestaña o minimiza la app.</li>
+              <li>Espera 10 segundos para recibir la notificación.</li>
+              <li>Haz clic para volver a la app.</li>
+              <li>Si regresas antes de los 10s, se cancelará el envío.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function updateNotificationStatus() {
+      const statusDiv = document.getElementById('notification-status');
+      if (!('Notification' in window)) {
+        statusDiv.innerHTML = '❌ Este navegador no soporta notificaciones';
+        statusDiv.classList.add('bg-red-100', 'text-red-800');
+        return;
+      }
+      const permission = Notification.permission;
+      let statusText = '';
+      let bgColor = '';
+      switch(permission) {
+        case 'granted':
+          statusText = '✅ Permisos concedidos - Las notificaciones están activas';
+          bgColor = 'bg-green-100 text-green-800';
+          break;
+        case 'denied':
+          statusText = '❌ Permisos denegados - Por favor, habilita las notificaciones en la configuración del navegador';
+          bgColor = 'bg-red-100 text-red-800';
+          break;
+        case 'default':
+          statusText = '⏳ Esperando respuesta - Se solicitarán permisos automáticamente';
+          bgColor = 'bg-yellow-100 text-yellow-800';
+          break;
+      }
+      statusDiv.innerHTML = statusText;
+      statusDiv.className = 'rounded p-4 font-mono text-sm ' + bgColor;
+    }
+
+    async function testNotification() {
+      if (!('Notification' in window)) {
+        alert('Tu navegador no soporta notificaciones');
+        addNotificationLog('❌ Navegador no soporta notificaciones', 'error');
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        alert('Los permisos de notificaciones están denegados. Por favor, habilítalos en la configuración del navegador.');
+        addNotificationLog('🚫 Permisos denegados - no se puede enviar notificación de prueba', 'error');
+        return;
+      }
+      if (Notification.permission === 'default') {
+        addNotificationLog('⏳ Solicitando permisos para prueba manual...', 'warning');
+        const permission = await Notification.requestPermission();
+        updateNotificationStatus();
+        if (permission !== 'granted') {
+          addNotificationLog('❌ Permisos denegados por el usuario', 'error');
+          return;
+        }
+        addNotificationLog('⏳ Esperando sincronización...', 'info');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (typeof notificationPermissionGranted !== 'undefined') {
+          window.notificationPermissionGranted = true;
+        }
+        addNotificationLog('✅ Permisos concedidos', 'success');
+      }
+      addNotificationLog('🧪 Enviando notificación de prueba MANUAL...', 'info');
+      try {
+        if (typeof enviarNotificacion === 'function') {
+          await enviarNotificacion('🧪 Notificación de Prueba', {
+            body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+            icon: '/static/icons/android/android-launchericon-192-192.png',
+            tag: 'test-notification',
+            requireInteraction: false,
+            vibrate: [200, 100, 200]
+          });
+        } else if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          const registration = await navigator.serviceWorker.ready;
+          await registration.showNotification('🧪 Notificación de Prueba', {
+            body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+            icon: '/static/icons/android/android-launchericon-192-192.png',
+            badge: '/static/icons/icon.svg',
+            tag: 'test-notification',
+            requireInteraction: false,
+            vibrate: [200, 100, 200],
+            data: { url: '/', origin: window.location.origin }
+          });
+          addNotificationLog('✅ Notificación de prueba enviada vía Service Worker', 'success');
+        } else {
+          const notification = new Notification('🧪 Notificación de Prueba', {
+            body: 'Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!',
+            icon: '/static/icons/android/android-launchericon-192-192.png',
+            tag: 'test-notification',
+            requireInteraction: false,
+            vibrate: [200, 100, 200]
+          });
+          addNotificationLog('✅ Notificación de prueba enviada', 'success');
+          notification.onclick = function() {
+            addNotificationLog('👆 Click en notificación de prueba', 'info');
+            window.focus();
+            notification.close();
+          };
+        }
+      } catch (error) {
+        addNotificationLog('❌ Error al enviar notificación de prueba: ' + error.message, 'error');
+      }
+    }
+
+    function updatePWAEnvironment() {
+      if (typeof detectPWAEnvironment !== 'function') {
+        setTimeout(updatePWAEnvironment, 100);
+        return;
+      }
+      const env = detectPWAEnvironment();
+      const desc = getPWAEnvironmentDescription();
+      document.getElementById('env-type').textContent = desc;
+      document.getElementById('env-platform').textContent = env.platform;
+      document.getElementById('env-display').textContent = env.displayMode;
+      document.getElementById('env-installed').textContent = env.isInstalled ? '✅ Sí' : '❌ No';
+      const envContainer = document.getElementById('pwa-environment');
+      if (env.isTWA || env.isInstalled) {
+        envContainer.classList.remove('bg-gray-100');
+        envContainer.classList.add('bg-green-50', 'border', 'border-green-200');
+      }
+      console.log('🔍 Entorno PWA detectado:', env);
+    }
+
+    updateNotificationStatus();
+    updatePWAEnvironment();
+
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'notifications' }).then(function(permissionStatus) {
+        permissionStatus.onchange = function() {
+          updateNotificationStatus();
+        };
+      }).catch(function(error) {
+        console.log('No se pudo consultar el estado de permisos:', error);
+      });
+    }
+  </script>
+{% endblock content %}

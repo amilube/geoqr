@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+  <script src="{% static 'app.js' %}"></script>
+
+  <div class="max-w-6xl mx-auto space-y-8">
+    <section class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl shadow-lg px-8 py-10">
+      <div class="flex flex-col gap-3">
+        <p class="uppercase tracking-wide text-sm font-semibold text-indigo-100">Escaneo QR</p>
+        <h1 class="text-4xl font-extrabold">Activa la cámara y lee el código</h1>
+        <p class="text-indigo-100 max-w-3xl">Usa la cámara para detectar códigos QR, abrir enlaces o copiar el contenido detectado.</p>
+      </div>
+    </section>
+
+    <section class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900">Escáner de códigos QR</h2>
+          <p class="text-gray-600">Permite el acceso a la cámara y sigue los pasos rápidos para probar.</p>
+        </div>
+        <div class="flex items-center gap-3 text-sm text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-2">
+          <span class="text-xl">📷</span>
+          <span>Usa la cámara trasera para mejor enfoque.</span>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <div id="instructions" class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+            <p class="font-semibold text-gray-800">Pasos rápidos</p>
+            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+              <li>Permite el acceso a la cámara.</li>
+              <li>Apunta al QR y espera la lectura.</li>
+              <li>Abre el enlace o copia el contenido.</li>
+            </ul>
+          </div>
+
+          <div id="scan-button-container" class="border border-dashed border-gray-300 rounded-lg p-4 text-center space-y-3">
+            <p class="text-sm text-gray-600">Inicia el escaneo cuando estés listo.</p>
+            <button class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-lg transition" onclick="iniciarEscaneo()">
+              <span>Iniciar escaneo</span>
+            </button>
+          </div>
+
+          <div id="scanner-container" class="hidden border border-gray-200 rounded-lg overflow-hidden shadow-inner">
+            <div class="flex justify-between items-center bg-gray-50 px-4 py-2 border-b border-gray-200">
+              <p class="text-sm font-semibold text-gray-800">Escáner activo</p>
+              <button class="text-sm text-red-600 hover:text-red-700" onclick="detenerEscaneo()">Detener</button>
+            </div>
+            <div class="relative bg-black">
+              <div id="qr-video" class="w-full h-72"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div id="result-container" class="hidden border border-gray-200 rounded-lg p-4 space-y-3 bg-green-50">
+            <p class="text-sm font-semibold text-gray-800">Resultado</p>
+            <div id="qr-result" class="text-sm font-mono break-all"></div>
+            <div class="flex flex-wrap gap-2">
+              <button id="open-btn" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition" onclick="abrirURL()">Abrir enlace</button>
+              <button class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition" onclick="copiarContenido()">Copiar</button>
+              <button class="bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition" onclick="resetearEscaner()">Escanear otro</button>
+            </div>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2 text-sm text-gray-700">
+            <p class="font-semibold text-gray-800">Consejos</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Mantén el código estable y con buena luz.</li>
+              <li>Si la cámara no abre, revisa los permisos del navegador.</li>
+              <li>Cuando se lea un enlace válido, aparece el botón “Abrir enlace”.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+{% endblock content %}
