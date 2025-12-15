@@ -24,7 +24,46 @@
   <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
 
   <!-- HTMX v2 desde CDN -->
-    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+  <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+
+  <!-- Page Transition CSS -->
+  <style>
+    /* Fade transition for page loads */
+    .htmx-request.htmx-settling #main-content {
+      opacity: 0.6;
+      transition: opacity 200ms ease-in;
+    }
+
+    .htmx-request.htmx-swapping #main-content {
+      opacity: 0;
+      transition: opacity 150ms ease-out;
+    }
+
+    .htmx-settling #main-content {
+      opacity: 1;
+      transition: opacity 300ms ease-in;
+    }
+
+    /* Smooth height transitions */
+    #main-content {
+      transition: all 300ms ease-in-out;
+    }
+
+    /* Loading indicator */
+    .htmx-request .htmx-indicator {
+      display: inline-block;
+    }
+
+    .htmx-indicator {
+      display: none;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  </style>
 
   <!-- html5-qrcode Library para escaneo de códigos QR -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -60,7 +99,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-14">
         <div class="flex-shrink-0">
-          <a class="text-2xl font-bold text-white" href="{% url 'home' %}">GeoQR</a>
+          <a hx-boost="true" class="text-2xl font-bold text-white" href="{% url 'home' %}">GeoQR</a>
         </div>
         <!-- Mobile menu button -->
         <div class="flex md:hidden">
@@ -76,7 +115,7 @@
         <!-- Desktop Navigation -->
         <div class="hidden md:flex md:items-center md:space-x-8">
           {% if request.user.is_authenticated %}
-            <a class="text-white hover:text-blue-100 font-medium transition" href="{% url 'protected_home' %}">Inicio</a>
+            <a hx-boost="true" class="text-white hover:text-blue-100 font-medium transition" href="{% url 'protected_home' %}">Inicio</a>
             <a class="text-white hover:text-blue-100 font-medium transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
           {% else %}
             <a id="log-in-link" class="text-white hover:text-blue-100 font-medium transition" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
@@ -88,16 +127,16 @@
     <div id="mobile-menu" class="hidden md:hidden bg-blue-700">
       <div class="px-4 py-2 space-y-1">
         {% if request.user.is_authenticated %}
-          <a class="block px-3 py-2 rounded-lg text-white font-medium hover:bg-blue-600 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+          <a hx-boost="true" class="block px-3 py-2 rounded-lg text-white font-medium hover:bg-blue-600 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
         {% else %}
-          <a id="log-in-link-mobile" class="block px-3 py-2 rounded-lg text-white font-medium hover:bg-blue-600 transition" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+          <a id="log-in-link-mobile" hx-boost="true" class="block px-3 py-2 rounded-lg text-white font-medium hover:bg-blue-600 transition" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
         {% endif %}
       </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
+  <!-- Main Content with HTMX -->
+  <div id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
     {% if messages %}
       {% for message in messages %}
         <div class="mb-4 rounded-md p-4 {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %} flex items-start justify-between">
@@ -122,19 +161,19 @@
   <!-- Bottom mobile navbar -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10">
     <div class="grid grid-cols-5 text-center">
-      <a href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
+      <a hx-boost="true" href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:home" class="text-2xl {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Inicio</span>
       </a>
-      <a href="{% url 'push' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'push' %}bg-blue-50{% endif %}">
+      <a hx-boost="true" href="{% url 'push' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'push' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:bell" class="text-2xl {% if request.resolver_match.url_name == 'push' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'push' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Notifs</span>
       </a>
-      <a href="{% url 'qr' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'qr' %}bg-blue-50{% endif %}">
+      <a hx-boost="true" href="{% url 'qr' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'qr' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:qr-code" class="text-2xl {% if request.resolver_match.url_name == 'qr' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'qr' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Scan</span>
       </a>
-      <a href="{% url 'geo' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'geo' %}bg-blue-50{% endif %}">
+      <a hx-boost="true" href="{% url 'geo' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'geo' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:map-pin" class="text-2xl {% if request.resolver_match.url_name == 'geo' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'geo' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Geo</span>
       </a>
@@ -170,6 +209,22 @@
     {% endcompress %}
 
     <script>
+      // HTMX Configuration
+      htmx.config.refreshOnHistoryMiss = true;
+      htmx.config.historyCacheSize = 10;
+
+      // Configure HTMX to swap with main-content div
+      htmx.onLoad(function(content) {
+        // Reinitialize event listeners after HTMX swap
+        initializeMobileMenu();
+        initializeMobileProfileMenu();
+      });
+
+      // Scroll to top on page transition
+      document.addEventListener('htmx:beforeSwap', function(event) {
+        window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
+      });
+
       // Mobile menu toggle functionality
       function initializeMobileMenu() {
         const mobileMenuButton = document.getElementById('mobile-menu-button');

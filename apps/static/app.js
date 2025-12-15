@@ -64,11 +64,20 @@ async function iniciarEscaneo() {
             throw new Error('html5-qrcode library no está disponible');
         }
 
-        // Mostrar el contenedor del escáner y ocultar el botón de inicio
-        document.getElementById('scanner-container').classList.remove('hidden');
-        document.getElementById('scan-button-container').classList.add('hidden');
-        document.getElementById('instructions').classList.add('hidden');
-        document.getElementById('result-container').classList.add('hidden');
+        // Mostrar el contenedor del escáner y ocultar otros elementos
+        const scannerContainer = document.getElementById('scanner-container');
+        const emptyState = document.getElementById('empty-state');
+        const resultContainer = document.getElementById('result-container');
+        const scanButtonCard = document.getElementById('scan-button-card');
+
+        if (!scannerContainer || !emptyState) {
+            throw new Error('No se encontraron los elementos necesarios');
+        }
+
+        scannerContainer.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        resultContainer.classList.add('hidden');
+        if (scanButtonCard) scanButtonCard.classList.add('hidden');
 
         scanningActive = true;
 
@@ -95,9 +104,12 @@ async function iniciarEscaneo() {
         mostrarMensaje('No se pudo acceder a la cámara. Verificá los permisos.', 'error');
 
         // Revertir UI en caso de error
-        document.getElementById('scanner-container').classList.add('hidden');
-        document.getElementById('scan-button-container').classList.remove('hidden');
-        document.getElementById('instructions').classList.remove('hidden');
+        const scannerContainer = document.getElementById('scanner-container');
+        const emptyState = document.getElementById('empty-state');
+        const scanButtonCard = document.getElementById('scan-button-card');
+        if (scannerContainer) scannerContainer.classList.add('hidden');
+        if (emptyState) emptyState.classList.remove('hidden');
+        if (scanButtonCard) scanButtonCard.classList.remove('hidden');
         scanningActive = false;
     }
 }
@@ -141,10 +153,13 @@ async function detenerEscaneo() {
         html5QrCode = null;
     }
 
-    // Ocultar el contenedor del escáner y mostrar el botón de inicio
-    document.getElementById('scanner-container').classList.add('hidden');
-    document.getElementById('scan-button-container').classList.remove('hidden');
-    document.getElementById('instructions').classList.remove('hidden');
+    // Ocultar el contenedor del escáner y mostrar el estado vacío
+    const scannerContainer = document.getElementById('scanner-container');
+    const emptyState = document.getElementById('empty-state');
+    const scanButtonCard = document.getElementById('scan-button-card');
+    if (scannerContainer) scannerContainer.classList.add('hidden');
+    if (emptyState) emptyState.classList.remove('hidden');
+    if (scanButtonCard) scanButtonCard.classList.remove('hidden');
 
     ocultarMensaje();
 }
@@ -212,9 +227,12 @@ function abrirURL() {
  */
 function resetearEscaner() {
     detectedURL = '';
-    document.getElementById('result-container').classList.add('hidden');
-    document.getElementById('scan-button-container').classList.remove('hidden');
-    document.getElementById('instructions').classList.remove('hidden');
+    const resultContainer = document.getElementById('result-container');
+    const emptyState = document.getElementById('empty-state');
+    const scanButtonCard = document.getElementById('scan-button-card');
+    if (resultContainer) resultContainer.classList.add('hidden');
+    if (emptyState) emptyState.classList.remove('hidden');
+    if (scanButtonCard) scanButtonCard.classList.remove('hidden');
     ocultarMensaje();
 }
 
@@ -410,11 +428,17 @@ function ubicacionExitosa(position) {
 
     // Mostrar información de coordenadas
     const locationInfo = document.getElementById('location-info');
-    locationInfo.textContent = `Latitud: ${userLocation.lat.toFixed(6)}, Longitud: ${userLocation.lng.toFixed(6)}`;
+    if (locationInfo) {
+        locationInfo.textContent = `Latitud: ${userLocation.lat.toFixed(6)}, Longitud: ${userLocation.lng.toFixed(6)}`;
+    }
 
     // Ocultar el botón y mostrar el mapa
-    document.getElementById('location-button-container').classList.add('hidden');
-    document.getElementById('map-container').classList.remove('hidden');
+    const locationButtonContainer = document.getElementById('location-button-container');
+    const mapContainer = document.getElementById('map-container');
+    const mapPlaceholder = document.getElementById('map-placeholder');
+    if (locationButtonContainer) locationButtonContainer.classList.add('hidden');
+    if (mapContainer) mapContainer.classList.remove('hidden');
+    if (mapPlaceholder) mapPlaceholder.classList.add('hidden');
 
     // Inicializar el mapa con la ubicación del usuario
     inicializarMapa(userLocation);

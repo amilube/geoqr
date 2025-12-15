@@ -18,7 +18,7 @@
   <div class="max-w-4xl mx-auto px-4 py-8 md:py-12">
     <section class="grid grid-cols-1 md:grid-cols-3 gap-5" aria-label="Accesos rápidos">
       <!-- Notificaciones Card -->
-      <a href="{% url 'push' %}" class="group block">
+      <a hx-boost="true" href="{% url 'push' %}" class="group block">
         <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
           <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-8 flex items-center justify-center flex-1">
             <iconify-icon icon="lucide:bell" class="text-6xl text-white"></iconify-icon>
@@ -36,7 +36,7 @@
       </a>
 
       <!-- Geolocalización Card -->
-      <a href="{% url 'geo' %}" class="group block">
+      <a hx-boost="true" href="{% url 'geo' %}" class="group block">
         <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
           <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-8 flex items-center justify-center flex-1">
             <iconify-icon icon="lucide:map-pin" class="text-6xl text-white"></iconify-icon>
@@ -54,7 +54,7 @@
       </a>
 
       <!-- Escanear QR Card -->
-      <a href="{% url 'qr' %}" class="group block">
+      <a hx-boost="true" href="{% url 'qr' %}" class="group block">
         <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
           <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-8 flex items-center justify-center flex-1">
             <iconify-icon icon="lucide:qr-code" class="text-6xl text-white"></iconify-icon>

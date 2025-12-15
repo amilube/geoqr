@@ -12,68 +12,118 @@
       <p class="text-indigo-100 text-base md:text-lg leading-relaxed max-w-3xl">Activa la cámara, escanea códigos y abre enlaces al instante.</p>
     </section>
 
-    <section class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900">Escáner de códigos QR</h2>
-          <p class="text-gray-600">Permite el acceso a la cámara y sigue los pasos rápidos para probar.</p>
-        </div>
-        <div class="flex items-center gap-3 text-sm text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg px-4 py-2">
-          <span class="text-xl">📷</span>
-          <span>Usa la cámara trasera para mejor enfoque.</span>
-        </div>
-      </div>
-
+    <!-- Main Content -->
+    <div class="px-4 py-8 md:py-12">
       <div class="grid md:grid-cols-2 gap-6">
-        <div class="space-y-4">
-          <div id="instructions" class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
-            <p class="font-semibold text-gray-800">Pasos rápidos</p>
-            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-              <li>Permite el acceso a la cámara.</li>
-              <li>Apunta al QR y espera la lectura.</li>
-              <li>Abre el enlace o copia el contenido.</li>
-            </ul>
+        <!-- Scanner Panel -->
+        <div class="space-y-5">
+          <!-- Instructions Card -->
+          <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-100">
+              <h2 class="text-lg font-bold text-gray-900">Pasos rápidos</h2>
+            </div>
+            <div class="p-6">
+              <ol class="space-y-3">
+                <li class="flex gap-3">
+                  <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex-shrink-0">1</span>
+                  <span class="text-sm text-gray-700 pt-0.5">Permite el acceso a la cámara.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex-shrink-0">2</span>
+                  <span class="text-sm text-gray-700 pt-0.5">Apunta al código QR.</span>
+                </li>
+                <li class="flex gap-3">
+                  <span class="flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex-shrink-0">3</span>
+                  <span class="text-sm text-gray-700 pt-0.5">Abre el enlace o copia el contenido.</span>
+                </li>
+              </ol>
+            </div>
           </div>
 
-          <div id="scan-button-container" class="border border-dashed border-gray-300 rounded-lg p-4 text-center space-y-3">
-            <p class="text-sm text-gray-600">Inicia el escaneo cuando estés listo.</p>
-            <button class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-3 rounded-lg transition" onclick="iniciarEscaneo()">
-              <span>Iniciar escaneo</span>
-            </button>
+          <!-- Empty State -->
+          <div id="empty-state" class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-12 flex flex-col items-center justify-center text-center">
+              <iconify-icon icon="lucide:qr-code" class="text-6xl text-gray-300 mb-4"></iconify-icon>
+              <p class="text-gray-500 font-semibold">Presiona para iniciar el escaneo</p>
+            </div>
           </div>
 
-          <div id="scanner-container" class="hidden border border-gray-200 rounded-lg overflow-hidden shadow-inner">
-            <div class="flex justify-between items-center bg-gray-50 px-4 py-2 border-b border-gray-200">
-              <p class="text-sm font-semibold text-gray-800">Escáner activo</p>
-              <button class="text-sm text-red-600 hover:text-red-700" onclick="detenerEscaneo()">Detener</button>
+          <!-- Scanner Container -->
+          <div id="scanner-container" class="hidden bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="flex justify-between items-center bg-gradient-to-r from-indigo-50 to-purple-50 px-6 py-4 border-b border-gray-100">
+              <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                Escáner activo
+              </h3>
+              <button class="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition flex items-center gap-1" onclick="detenerEscaneo()">
+                <iconify-icon icon="lucide:x"></iconify-icon>
+                Detener
+              </button>
             </div>
             <div class="relative bg-black">
-              <div id="qr-video" class="w-full h-72"></div>
+              <div id="qr-video" class="w-full h-80"></div>
             </div>
           </div>
-        </div>
-
-        <div class="space-y-4">
-          <div id="result-container" class="hidden border border-gray-200 rounded-lg p-4 space-y-3 bg-green-50">
-            <p class="text-sm font-semibold text-gray-800">Resultado</p>
-            <div id="qr-result" class="text-sm font-mono break-all"></div>
-            <div class="flex flex-wrap gap-2">
-              <button id="open-btn" class="hidden bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition" onclick="abrirURL()">Abrir enlace</button>
-              <button class="bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition" onclick="copiarContenido()">Copiar</button>
-              <button class="bg-white border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-50 transition" onclick="resetearEscaner()">Escanear otro</button>
+          <!-- Scan Button Card -->
+          <div id="scan-button-card" class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="p-6 space-y-4">
+              <button class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl" onclick="iniciarEscaneo()">
+                <iconify-icon icon="lucide:camera" class="text-2xl"></iconify-icon>
+                <span>Iniciar escaneo</span>
+              </button>
             </div>
           </div>
 
-          <div class="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-2 text-sm text-gray-700">
-            <p class="font-semibold text-gray-800">Consejos</p>
-            <ul class="list-disc list-inside space-y-1">
-              <li>Mantén el código estable y con buena luz.</li>
-              <li>Si la cámara no abre, revisa los permisos del navegador.</li>
-              <li>Cuando se lea un enlace válido, aparece el botón “Abrir enlace”.</li>
+          <!-- Tips Card -->
+          <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <p class="text-xs font-semibold text-blue-900 mb-2 flex items-center gap-2">
+              <iconify-icon icon="lucide:lightbulb" class="text-lg"></iconify-icon>
+              Consejos
+            </p>
+            <ul class="text-xs text-blue-800 space-y-1">
+              <li>• Buena iluminación para mejor detección.</li>
+              <li>• Mantén el código estable.</li>
+              <li>• Si no funciona, revisa los permisos del navegador.</li>
             </ul>
           </div>
         </div>
+
+        <!-- Scanner and Results Panel -->
+        <div class="space-y-5">
+
+          <!-- Result Container -->
+          <div id="result-container" class="hidden bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-gray-100">
+              <h3 class="font-bold text-gray-900 flex items-center gap-2">
+                <iconify-icon icon="lucide:check-circle-2" class="text-lg text-green-600"></iconify-icon>
+                Resultado detectado
+              </h3>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p class="text-xs text-gray-600 mb-2 font-semibold">Contenido:</p>
+                <div id="qr-result" class="text-sm font-mono break-all text-gray-900"></div>
+              </div>
+              <div class="flex flex-col gap-3">
+                <button id="open-btn" class="hidden w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 flex items-center justify-center gap-2" onclick="abrirURL()">
+                  <iconify-icon icon="lucide:external-link" class="text-lg"></iconify-icon>
+                  <span>Abrir enlace</span>
+                </button>
+                <div class="grid grid-cols-2 gap-3">
+                  <button class="bg-gray-900 hover:bg-gray-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2" onclick="copiarContenido()">
+                    <iconify-icon icon="lucide:copy" class="text-lg"></iconify-icon>
+                    <span>Copiar</span>
+                  </button>
+                  <button class="bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2" onclick="resetearEscaner()">
+                    <iconify-icon icon="lucide:rotate-cw" class="text-lg"></iconify-icon>
+                    <span>Otro</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   </div>
 {% endblock content %}
