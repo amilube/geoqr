@@ -287,7 +287,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.log('html5-qrcode library cargada correctamente');
     }
 
-    // Cargar Google Maps API
+    // Cargar Google Maps API (solo si hay key provisionada por el backend)
     cargarGoogleMapsAPI();
 
     if ('serviceWorker' in navigator) {
@@ -372,14 +372,13 @@ function initMap() {
  * Cargar la API de Google Maps dinámicamente
  */
 function cargarGoogleMapsAPI() {
-    // Intentar obtener la API key del localStorage o usar una key de desarrollo
-    // En producción, el usuario deberá configurar su propia API key
-    const apiKey = localStorage.getItem('googleMapsApiKey') || '';
+    // Obtener la API key desde el backend (data attribute en el contenedor de mapa)
+    const mapContainer = document.querySelector('[data-google-maps-key]');
+    const apiKey = mapContainer?.dataset.googleMapsKey || '';
 
     if (!apiKey) {
-        // Si no hay API key, mostrar mensaje instructivo
-        mostrarMensaje('Nota: Para usar Google Maps, configurá tu API key en localStorage con la clave "googleMapsApiKey"', 'info');
-        // Intentar cargar sin API key (modo desarrollo limitado)
+        mostrarMensaje('Falta configurar GOOGLE_MAPS_JS_API_KEY (restringida por dominio). Contactá al administrador.', 'error');
+        return;
     }
 
     const script = document.createElement('script');
