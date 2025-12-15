@@ -1,8 +1,12 @@
 import hashlib
+import json
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
+from django.views.decorators.http import require_http_methods
 
 
 def _get_service_worker_cache_name():
@@ -90,3 +94,128 @@ def privacity_page(request):
     Vista que sirve la página de privacidad de la PWA.
     """
     return render(request, "pwa/privacity_page.html", status=200)
+
+
+@login_required
+@require_http_methods(["POST"])
+def register_push_subscription(request):
+    """
+    Registra o actualiza la suscripción Web Push del usuario.
+    """
+    try:
+        from push_notifications.models import WebPushDevice
+
+        data = json.loads(request.body)
+        subscription = data.get("subscription")
+
+        if not subscription:
+            return JsonResponse({"error": "No subscription data"}, status=400)
+
+        # Extraer endpoint, keys, etc.
+        endpoint = subscription.get("endpoint")
+        p256dh = subscription.get("keys", {}).get("p256dh")
+        auth = subscription.get("keys", {}).get("auth")
+
+        if not all([endpoint, p256dh, auth]):
+            return JsonResponse({"error": "Invalid subscription format"}, status=400)
+
+        # Crear o actualizar el dispositivo
+        device, created = WebPushDevice.objects.update_or_create(
+            registration_id=endpoint,
+            defaults={
+                "user": request.user,
+                "p256dh": p256dh,
+                "auth": auth,
+                "browser": data.get("browser", "unknown"),
+                "active": True,
+            },
+        )
+
+        return JsonResponse(
+            {"success": True, "created": created, "device_id": device.id}
+        )
+
+    except ImportError:
+        return JsonResponse(
+            {"error": "django-push-notifications not installed"}, status=500
+        )
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def send_test_notification(request):
+    """
+    Envía una notificación de prueba al usuario actual.
+    """
+    try:
+        from push_notifications.models import WebPushDevice
+
+        # Obtener todos los dispositivos activos del usuario
+        devices = WebPushDevice.objects.filter(user=request.user, active=True)
+
+        if not devices.exists():
+            return JsonResponse(
+                {"error": "No active devices found. Please subscribe first."},
+                status=400,
+            )
+
+        # Enviar notificación a todos los dispositivos
+        message = {
+            "title": "🧪 Notificación de Prueba",
+            "body": "Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!",
+            "icon": "/static/icons/android/android-launchericon-192-192.png",
+            "badge": "/static/icons/icon.svg",
+            "data": {"url": "/", "timestamp": timezone.now().isoformat()},
+        }
+
+        devices.send_message(message=json.dumps(message))
+
+        return JsonResponse(
+            {
+                "success": True,
+                "devices_count": devices.count(),
+                "message": "Test notification sent",
+            }
+        )
+
+    except ImportError:
+        return JsonResponse(
+            {"error": "django-push-notifications not installed"}, status=500
+        )
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def unregister_push_subscription(request):
+    """
+    Desregistra la suscripción Web Push del usuario.
+    """
+    try:
+        from push_notifications.models import WebPushDevice
+
+        data = json.loads(request.body)
+        endpoint = data.get("endpoint")
+
+        if not endpoint:
+            return JsonResponse({"error": "No endpoint provided"}, status=400)
+
+        deleted_count, _ = WebPushDevice.objects.filter(
+            registration_id=endpoint, user=request.user
+        ).delete()
+
+        return JsonResponse({"success": True, "deleted": deleted_count > 0})
+
+    except ImportError:
+        return JsonResponse(
+            {"error": "django-push-notifications not installed"}, status=500
+        )
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

@@ -26,6 +26,9 @@
   <!-- HTMX v2 desde CDN -->
   <script src="https://unpkg.com/htmx.org@2.0.0"></script>
 
+  <!-- html5-qrcode Library para escaneo de códigos QR -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
   <!-- Page Transition CSS -->
   <style>
     /* Fade transition for page loads */
@@ -65,11 +68,8 @@
     }
   </style>
 
-  <!-- html5-qrcode Library para escaneo de códigos QR -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
   <!-- Manifest para PWA -->
-  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <link rel="manifest" href="{% static 'manifest.json' %}"
 
 
   {% block css %}
@@ -87,23 +87,29 @@
   <!-- PWA Detection -->
   <script src="{% static 'js/pwa-detection.js' %}"></script>
   
+  <!-- Push Notifications -->
+  <script src="{% static 'js/push-notifications.js' %}"></script>
+  
+  <!-- Application Logic (must load after HTMX, html5-qrcode, and before project.js) -->
+  <script src="{% static 'app.js' %}"></script>
+  
   {% compress js %}
-    <script defer src="{% static 'js/project.js' %}"></script>
+    <script src="{% static 'js/project.js' %}"></script>
   {% endcompress %}
   {% endblock javascript %}
 </head>
 <body class="{% block bodyclass %}{% endblock bodyclass %} bg-white text-gray-900">
   {% block body %}
   <!-- Navigation Bar -->
-  <nav class="bg-gradient-to-r from-blue-600 to-blue-700 shadow-md">
+  <nav class="bg-white border-b border-gray-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-14">
         <div class="flex-shrink-0">
-          <a hx-boost="true" class="text-2xl font-bold text-white" href="{% url 'home' %}">GeoQR</a>
+          <a hx-boost="true" class="text-2xl font-semibold text-gray-900 hover:text-gray-700 transition" href="{% url 'home' %}">GeoQR</a>
         </div>
         <!-- Mobile menu button -->
         <div class="flex md:hidden">
-          <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-blue-500 focus:outline-none transition" aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+          <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none transition" aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
             <svg id="hamburger-open" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>

@@ -1,72 +1,105 @@
 {% extends "base.html" %}
 {% load static %}
 
- {% block content %}
-  <!-- Cargar app.js para las funciones de notificaciones -->
-  <script src="{% static 'app.js' %}"></script>
-  
+{% block content %}
+  <style>
+    /* Accessibility improvements */
+    button, a {
+      min-height: 48px; /* WCAG 2.5 minimum touch target size */
+      font-size: clamp(16px, 5vw, 24px);
+    }
+    
+    a {
+      text-decoration: none;
+    }
+    
+    .text-3xl, .text-4xl, .text-5xl {
+      font-size: clamp(24px, 6vw, 48px);
+      line-height: 1.2;
+    }
+    
+    .text-lg {
+      font-size: clamp(16px, 4vw, 20px);
+      line-height: 1.6;
+    }
+    
+    .text-sm {
+      font-size: clamp(14px, 3vw, 16px);
+      line-height: 1.6;
+    }
+    
+    /* Better focus indicators for keyboard navigation */
+    button:focus-visible,
+    a:focus-visible {
+      outline: 3px solid #4f46e5;
+      outline-offset: 2px;
+    }
+    
+    /* Reduce motion for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+
   <!-- Hero Section -->
-  <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white px-6 py-12 md:py-16">
+  <section class="bg-white border-b border-gray-200 px-4 py-8 md:py-12 -mx-4 sm:-mx-6 lg:-mx-8">
     <div class="max-w-4xl mx-auto">
-      <p class="text-sm font-medium text-blue-100 mb-2 tracking-wide">PWA Toolkit</p>
-      <h1 class="text-4xl md:text-5xl font-bold mb-3 leading-tight">Bienvenido a GeoQR</h1>
-      <p class="text-blue-50 text-base md:text-lg leading-relaxed">Explora nuestras herramientas. Cada capacidad vive en su propia página.</p>
+      <h1 class="text-3xl md:text-4xl font-semibold text-gray-900 mb-2">Bienvenido a GeoQR</h1>
+      <p class="text-base md:text-lg text-gray-600">Explora nuestras herramientas</p>
     </div>
-  </div>
+  </section>
 
   <!-- Features Section -->
-  <div class="max-w-4xl mx-auto px-4 py-8 md:py-12">
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-5" aria-label="Accesos rápidos">
+  <div class="max-w-4xl mx-auto px-4 py-6 md:py-8">
+    <section class="space-y-4" aria-label="Accesos rápidos">
       <!-- Notificaciones Card -->
-      <a hx-boost="true" href="{% url 'push' %}" class="group block">
-        <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
-          <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-8 flex items-center justify-center flex-1">
-            <iconify-icon icon="lucide:bell" class="text-6xl text-white"></iconify-icon>
+      <a hx-boost="true" href="{% url 'push' %}" class="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 rounded-3xl">
+        <article class="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-row items-center gap-4 p-6">
+          <div class="flex-shrink-0">
+            <iconify-icon icon="lucide:bell" class="text-5xl text-gray-700"></iconify-icon>
           </div>
-          <div class="p-6 flex-1 flex flex-col justify-between">
-            <div>
-              <h2 class="text-lg font-bold text-gray-900 mb-2">Notificaciones Push</h2>
-              <p class="text-sm text-gray-600 leading-relaxed">Configura y prueba notificaciones en tu dispositivo. Recibe alertas en tiempo real.</p>
-            </div>
-            <div class="inline-flex items-center text-blue-600 font-semibold text-sm mt-4 group-hover:gap-2 transition-all">
-              Explorar <iconify-icon icon="lucide:arrow-right" class="ml-1"></iconify-icon>
-            </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-xl font-bold text-gray-900 mb-1">Notificaciones</h2>
+            <p class="text-sm text-gray-600">Recibe alertas en tiempo real</p>
+          </div>
+          <div class="flex-shrink-0">
+            <iconify-icon icon="lucide:chevron-right" class="text-2xl text-gray-400 group-hover:text-gray-700 transition"></iconify-icon>
           </div>
         </article>
       </a>
 
       <!-- Geolocalización Card -->
-      <a hx-boost="true" href="{% url 'geo' %}" class="group block">
-        <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
-          <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-8 flex items-center justify-center flex-1">
-            <iconify-icon icon="lucide:map-pin" class="text-6xl text-white"></iconify-icon>
+      <a hx-boost="true" href="{% url 'geo' %}" class="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 rounded-3xl">
+        <article class="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-row items-center gap-4 p-6">
+          <div class="flex-shrink-0">
+            <iconify-icon icon="lucide:map-pin" class="text-5xl text-gray-700"></iconify-icon>
           </div>
-          <div class="p-6 flex-1 flex flex-col justify-between">
-            <div>
-              <h2 class="text-lg font-bold text-gray-900 mb-2">Geolocalización</h2>
-              <p class="text-sm text-gray-600 leading-relaxed">Obtén tu ubicación exacta y visualízala en un mapa interactivo.</p>
-            </div>
-            <div class="inline-flex items-center text-green-600 font-semibold text-sm mt-4 group-hover:gap-2 transition-all">
-              Explorar <iconify-icon icon="lucide:arrow-right" class="ml-1"></iconify-icon>
-            </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-xl font-bold text-gray-900 mb-1">Ubicación</h2>
+            <p class="text-sm text-gray-600">Visualiza tu posición en el mapa</p>
+          </div>
+          <div class="flex-shrink-0">
+            <iconify-icon icon="lucide:chevron-right" class="text-2xl text-gray-400 group-hover:text-gray-700 transition"></iconify-icon>
           </div>
         </article>
       </a>
 
       <!-- Escanear QR Card -->
-      <a hx-boost="true" href="{% url 'qr' %}" class="group block">
-        <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
-          <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-8 flex items-center justify-center flex-1">
-            <iconify-icon icon="lucide:qr-code" class="text-6xl text-white"></iconify-icon>
+      <a hx-boost="true" href="{% url 'qr' %}" class="group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 rounded-3xl">
+        <article class="bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden h-full flex flex-row items-center gap-4 p-6">
+          <div class="flex-shrink-0">
+            <iconify-icon icon="lucide:scan" class="text-5xl text-gray-700"></iconify-icon>
           </div>
-          <div class="p-6 flex-1 flex flex-col justify-between">
-            <div>
-              <h2 class="text-lg font-bold text-gray-900 mb-2">Escanear QR</h2>
-              <p class="text-sm text-gray-600 leading-relaxed">Lee códigos QR con tu cámara. Comparte y abre enlaces al instante.</p>
-            </div>
-            <div class="inline-flex items-center text-indigo-600 font-semibold text-sm mt-4 group-hover:gap-2 transition-all">
-              Explorar <iconify-icon icon="lucide:arrow-right" class="ml-1"></iconify-icon>
-            </div>
+          <div class="flex-1 min-w-0">
+            <h2 class="text-xl font-bold text-gray-900 mb-1">Escáner QR</h2>
+            <p class="text-sm text-gray-600">Lee códigos con tu cámara</p>
+          </div>
+          <div class="flex-shrink-0">
+            <iconify-icon icon="lucide:chevron-right" class="text-2xl text-gray-400 group-hover:text-gray-700 transition"></iconify-icon>
           </div>
         </article>
       </a>
