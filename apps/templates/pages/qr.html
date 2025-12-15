@@ -4,13 +4,12 @@
 {% block content %}
   <script src="{% static 'app.js' %}"></script>
 
-  <div class="max-w-6xl mx-auto space-y-8">
-    <section class="bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl shadow-lg px-8 py-10">
-      <div class="flex flex-col gap-3">
-        <p class="uppercase tracking-wide text-sm font-semibold text-indigo-100">Escaneo QR</p>
-        <h1 class="text-4xl font-extrabold">Activa la cámara y lee el código</h1>
-        <p class="text-indigo-100 max-w-3xl">Usa la cámara para detectar códigos QR, abrir enlaces o copiar el contenido detectado.</p>
-      </div>
+  <div class="max-w-6xl mx-auto">
+    <!-- Header Hero -->
+    <section class="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 text-white px-6 py-12">
+      <p class="text-sm font-medium text-indigo-100 mb-2">Escaneo QR</p>
+      <h1 class="text-4xl md:text-5xl font-bold mb-3">Lee códigos QR con tu cámara</h1>
+      <p class="text-indigo-100 text-base md:text-lg leading-relaxed max-w-3xl">Activa la cámara, escanea códigos y abre enlaces al instante.</p>
     </section>
 
     <section class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-6">

@@ -5,46 +5,71 @@
   <!-- Cargar app.js para las funciones de notificaciones -->
   <script src="{% static 'app.js' %}"></script>
   
-  <div class="max-w-4xl mx-auto space-y-8">
-    <section class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-2xl shadow-lg px-8 py-10">
-      <div class="space-y-3">
-        <p class="uppercase tracking-wide text-sm font-semibold text-blue-100">PWA Toolkit</p>
-        <h1 class="text-4xl font-extrabold">Bienvenido a GeoQR</h1>
-        <p class="text-blue-100 max-w-2xl">Elegí la sección que querés probar. Cada capacidad vive en su propia página para que las pruebes de forma aislada.</p>
-      </div>
-    </section>
+  <!-- Hero Section -->
+  <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white px-6 py-12 md:py-16">
+    <div class="max-w-4xl mx-auto">
+      <p class="text-sm font-medium text-blue-100 mb-2 tracking-wide">PWA Toolkit</p>
+      <h1 class="text-4xl md:text-5xl font-bold mb-3 leading-tight">Bienvenido a GeoQR</h1>
+      <p class="text-blue-50 text-base md:text-lg leading-relaxed">Explora nuestras herramientas. Cada capacidad vive en su propia página.</p>
+    </div>
+  </div>
 
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4" aria-label="Accesos rápidos">
-      <article class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-          <span class="p-2 bg-blue-100 text-blue-700 rounded-lg">🔔</span>
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900">Notificaciones Push</h2>
-            <p class="text-sm text-gray-600">Solicita permisos y prueba envíos locales.</p>
+  <!-- Features Section -->
+  <div class="max-w-4xl mx-auto px-4 py-8 md:py-12">
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-5" aria-label="Accesos rápidos">
+      <!-- Notificaciones Card -->
+      <a href="{% url 'push' %}" class="group block">
+        <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
+          <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-8 flex items-center justify-center flex-1">
+            <iconify-icon icon="lucide:bell" class="text-6xl text-white"></iconify-icon>
           </div>
-        </div>
-        <a href="{% url 'push' %}" class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Ir a notificaciones</a>
-      </article>
-      <article class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-          <span class="p-2 bg-green-100 text-green-700 rounded-lg">📍</span>
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900">Geolocalización</h2>
-            <p class="text-sm text-gray-600">Obtén tu ubicación y visualízala en el mapa.</p>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">Notificaciones Push</h2>
+              <p class="text-sm text-gray-600 leading-relaxed">Configura y prueba notificaciones en tu dispositivo. Recibe alertas en tiempo real.</p>
+            </div>
+            <div class="inline-flex items-center text-blue-600 font-semibold text-sm mt-4 group-hover:gap-2 transition-all">
+              Explorar <iconify-icon icon="lucide:arrow-right" class="ml-1"></iconify-icon>
+            </div>
           </div>
-        </div>
-        <a href="{% url 'geo' %}" class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Ir a geolocalización</a>
-      </article>
-      <article class="bg-white border border-gray-200 rounded-xl shadow-sm p-5 flex flex-col gap-3">
-        <div class="flex items-center gap-3">
-          <span class="p-2 bg-indigo-100 text-indigo-700 rounded-lg">📷</span>
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900">Escanear QR</h2>
-            <p class="text-sm text-gray-600">Usa la cámara para leer códigos y abrir enlaces.</p>
+        </article>
+      </a>
+
+      <!-- Geolocalización Card -->
+      <a href="{% url 'geo' %}" class="group block">
+        <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
+          <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-8 flex items-center justify-center flex-1">
+            <iconify-icon icon="lucide:map-pin" class="text-6xl text-white"></iconify-icon>
           </div>
-        </div>
-        <a href="{% url 'qr' %}" class="inline-flex items-center justify-center gap-2 px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Ir a escáner</a>
-      </article>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">Geolocalización</h2>
+              <p class="text-sm text-gray-600 leading-relaxed">Obtén tu ubicación exacta y visualízala en un mapa interactivo.</p>
+            </div>
+            <div class="inline-flex items-center text-green-600 font-semibold text-sm mt-4 group-hover:gap-2 transition-all">
+              Explorar <iconify-icon icon="lucide:arrow-right" class="ml-1"></iconify-icon>
+            </div>
+          </div>
+        </article>
+      </a>
+
+      <!-- Escanear QR Card -->
+      <a href="{% url 'qr' %}" class="group block">
+        <article class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden h-full flex flex-col">
+          <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 p-8 flex items-center justify-center flex-1">
+            <iconify-icon icon="lucide:qr-code" class="text-6xl text-white"></iconify-icon>
+          </div>
+          <div class="p-6 flex-1 flex flex-col justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-gray-900 mb-2">Escanear QR</h2>
+              <p class="text-sm text-gray-600 leading-relaxed">Lee códigos QR con tu cámara. Comparte y abre enlaces al instante.</p>
+            </div>
+            <div class="inline-flex items-center text-indigo-600 font-semibold text-sm mt-4 group-hover:gap-2 transition-all">
+              Explorar <iconify-icon icon="lucide:arrow-right" class="ml-1"></iconify-icon>
+            </div>
+          </div>
+        </article>
+      </a>
     </section>
   </div>
 {% endblock content %}
