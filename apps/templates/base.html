@@ -159,6 +159,7 @@
   {% endblock body %}
 
   <!-- Bottom mobile navbar -->
+  {% if request.user.is_authenticated %}
   <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10">
     <div class="grid grid-cols-5 text-center">
       <a hx-boost="true" href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
@@ -191,6 +192,7 @@
       {% endif %}
     </div>
   </nav>
+  {% endif %}
 
   {% block modal %}
   {% endblock modal %}
