@@ -38,6 +38,33 @@ function getBrowserInfo() {
 }
 
 /**
+ * Valida y convierte la clave VAPID a Uint8Array
+ * @param {string} vapidPublicKey
+ * @returns {Uint8Array}
+ */
+function buildApplicationServerKey(vapidPublicKey) {
+    const key = (vapidPublicKey || '').trim();
+
+    if (!key) {
+        throw new Error('Falta la clave pública VAPID (WP_PUBLIC_KEY) en el entorno.');
+    }
+
+    let keyArray;
+    try {
+        keyArray = urlBase64ToUint8Array(key);
+    } catch (err) {
+        throw new Error('Clave VAPID inválida: no es base64-url.');
+    }
+
+    // VAPID public keys deben ser 65 bytes al convertirlas a Uint8Array
+    if (!keyArray || keyArray.length < 65) {
+        throw new Error('Clave VAPID inválida: longitud incorrecta.');
+    }
+
+    return keyArray;
+}
+
+/**
  * Suscribirse a notificaciones push
  * @param {string} vapidPublicKey - Clave pública VAPID
  * @returns {Promise<Object>} Objeto de suscripción
@@ -66,7 +93,7 @@ async function subscribeToPushNotifications(vapidPublicKey) {
         }
 
         // Crear nueva suscripción
-        const applicationServerKey = urlBase64ToUint8Array(vapidPublicKey);
+        const applicationServerKey = buildApplicationServerKey(vapidPublicKey);
 
         subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
