@@ -22,10 +22,7 @@ let mapsLibraryPromise = null;
 let notificationPromptRegistered = false;
 let pendingPermissionResolver = null;
 
-document.removeEventListener('pointerdown', promptOnceOnInteraction, true);
-document.removeEventListener('pointerup', promptOnceOnInteraction, true);
-document.removeEventListener('wheel', promptOnceOnInteraction, true);
-document.removeEventListener('scroll', promptOnceOnInteraction, true);
+// Page detection helpers
 function isPushPage() {
     return window.location.pathname.startsWith('/push');
 }
@@ -38,9 +35,6 @@ function isGeoPage() {
  * Agregar log visible en la UI
  * @param {string} message - Mensaje del log
  * @param {string} type - Tipo: 'info', 'success', 'warning', 'error'
-        document.addEventListener('pointerup', promptOnceOnInteraction, true);
-        document.addEventListener('wheel', promptOnceOnInteraction, true);
-        document.addEventListener('scroll', promptOnceOnInteraction, true);
  */
 function addNotificationLog(message, type = 'info') {
     const logContainer = document.getElementById('notification-logs');
