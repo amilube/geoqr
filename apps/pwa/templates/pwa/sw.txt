@@ -16,7 +16,7 @@
 // - ✓ Served when network fails in fetch event
 // - ✓ Navigation requests handled properly
 
-const CACHE_NAME = '{{ cache_name|default:"geoqr-v2" }}';
+const CACHE_NAME = '{{ cache_name|default:"geoqr-v3" }}';
 const DEBUG = {{ debug|lower }};
 
 // Offline page configuration (required for PWABuilder detection)
