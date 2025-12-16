@@ -15,8 +15,8 @@ from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 
 try:
-    from cryptography.hazmat.primitives.asymmetric import ec
     from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
 except Exception as exc:  # pragma: no cover - only runs if cryptography missing
     ec = None
     serialization = None
