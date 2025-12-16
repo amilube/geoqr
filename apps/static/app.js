@@ -20,6 +20,7 @@ let accessibilityInitialized = false;
 let mapsScriptInjected = false;
 let mapsLibraryPromise = null;
 let notificationPromptRegistered = false;
+let pendingPermissionResolver = null;
 
 // Page detection helpers
 function isPushPage() {
@@ -667,7 +668,27 @@ async function solicitarPermisoNotificaciones() {
     // Si es 'default', solicitar permisos
     try {
         addNotificationLog('⏳ Solicitando permisos al usuario...', 'warning');
-        const permission = await Notification.requestPermission();
+        // Chrome en Android puede requerir gesto; permitir un único pending resolver para
+        // que listeners de interacción puedan resolver la misma promesa.
+        const existingPending = pendingPermissionResolver;
+
+        const permission = await new Promise((resolve) => {
+            // Si ya hay un pendiente, reutilizar
+            if (existingPending) {
+                pendingPermissionResolver = existingPending;
+                pendingPermissionResolver(resolve);
+                return;
+            }
+
+            pendingPermissionResolver = (r) => r;
+            Notification.requestPermission().then((p) => {
+                pendingPermissionResolver = null;
+                resolve(p);
+            }).catch(() => {
+                pendingPermissionResolver = null;
+                resolve('denied');
+            });
+        });
 
         if (permission === 'granted') {
             notificationPermissionGranted = true;
@@ -878,6 +899,8 @@ async function inicializarNotificaciones() {
         const promptOnceOnInteraction = async () => {
             document.removeEventListener('click', promptOnceOnInteraction, true);
             document.removeEventListener('touchend', promptOnceOnInteraction, true);
+            document.removeEventListener('pointerdown', promptOnceOnInteraction, true);
+            document.removeEventListener('keydown', promptOnceOnInteraction, true);
             try {
                 await solicitarPermisoNotificaciones();
             } catch (error) {
@@ -885,9 +908,11 @@ async function inicializarNotificaciones() {
             }
         };
 
-        // Registrar listeners en fase de captura para asegurar que se dispare con el primer tap/click.
+        // Registrar listeners en fase de captura para asegurar que se dispare con el primer gesto.
         document.addEventListener('click', promptOnceOnInteraction, true);
         document.addEventListener('touchend', promptOnceOnInteraction, true);
+        document.addEventListener('pointerdown', promptOnceOnInteraction, true);
+        document.addEventListener('keydown', promptOnceOnInteraction, true);
     }
 
     if (granted) {

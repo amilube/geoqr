@@ -87,6 +87,17 @@
           <h2 class="text-lg font-bold text-gray-900">Acciones</h2>
         </div>
         <div class="p-6 space-y-4">
+          <!-- Solicitar permisos explícitamente -->
+          <button 
+            id="permission-btn"
+            onclick="handleRequestPermission()"
+            class="w-full bg-white border-2 border-blue-600 hover:bg-blue-600 hover:text-white text-blue-700 font-semibold py-6 px-6 rounded-xl transition-all text-xl flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Solicitar permisos de notificaciones"
+          >
+            <iconify-icon icon="lucide:shield-check" class="text-3xl"></iconify-icon>
+            <span>Habilitar notificaciones</span>
+          </button>
+
           <!-- Suscribirse -->
           <button 
             id="subscribe-btn" 
@@ -163,6 +174,7 @@
         
         // Actualizar estado de permisos
         const permissionDiv = document.getElementById('permission-status');
+        const permissionBtn = document.getElementById('permission-btn');
         let permissionText = '';
         let permissionColor = '';
         
@@ -170,14 +182,17 @@
           case 'granted':
             permissionText = '✅ Permisos concedidos';
             permissionColor = 'bg-green-100 text-green-900';
+            if (permissionBtn) permissionBtn.disabled = true;
             break;
           case 'denied':
             permissionText = '❌ Permisos denegados';
             permissionColor = 'bg-red-100 text-red-900';
+            if (permissionBtn) permissionBtn.disabled = false;
             break;
           default:
             permissionText = '⏳ Permisos pendientes';
             permissionColor = 'bg-yellow-100 text-yellow-900';
+            if (permissionBtn) permissionBtn.disabled = false;
         }
         
         permissionDiv.textContent = permissionText;
@@ -198,6 +213,18 @@
       } catch (error) {
         console.error('Error al actualizar UI:', error);
       }
+    
+    // Solicitar permisos manualmente
+    async function handleRequestPermission() {
+      mostrarMensaje('⏳ Solicitando permisos...', 'info');
+      const granted = await solicitarPermisoNotificaciones();
+      if (granted) {
+        mostrarMensaje('✅ Permisos concedidos', 'success');
+      } else {
+        mostrarMensaje('❌ Permiso no concedido', 'error');
+      }
+      await updateUI();
+    }
     }
     
     // Suscribirse a notificaciones
