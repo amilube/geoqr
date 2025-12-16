@@ -23,45 +23,11 @@
   <!-- Iconify for Lucide Icons -->
   <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
 
-  <!-- HTMX v2 desde CDN -->
-  <script src="https://unpkg.com/htmx.org@2.0.0"></script>
-
   <!-- html5-qrcode Library para escaneo de códigos QR -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-  <!-- Page Transition CSS -->
+  <!-- Navbar button styles -->
   <style>
-    /* Fade transition for page loads */
-    .htmx-request.htmx-settling #main-content {
-      opacity: 0.6;
-      transition: opacity 200ms ease-in;
-    }
-    .htmx-request.htmx-swapping #main-content {
-      opacity: 0;
-      transition: opacity 150ms ease-out;
-    }
-    .htmx-settling #main-content {
-      opacity: 1;
-      transition: opacity 300ms ease-in;
-    }
-    /* Smooth height transitions */
-    #main-content {
-      transition: all 300ms ease-in-out;
-    }
-    /* Loading indicator */
-    .htmx-request .htmx-indicator {
-      display: inline-block;
-    }
-    .htmx-indicator {
-      display: none;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    /* Uniform navbar button style */
     .navbar-btn {
       font-size: 1rem !important;
       padding: 0.5rem 1.25rem !important;
@@ -72,16 +38,33 @@
       min-height: 2.5rem !important;
       display: inline-block;
     }
+
+    @view-transition {
+      navigation: auto;
+    }
+
+    ::view-transition-group(root) {
+      animation-duration: 0.3s;
+    }
+
+    ::view-transition-old(root) {
+      animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+      animation-name: native-fade-out;
+    }
+
+    ::view-transition-new(root) {
+      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      animation-name: native-fade-in;
+    }
   </style>
 
   <!-- Manifest para PWA -->
-  <link rel="manifest" href="{% static 'manifest.json' %}"
-
+  <link rel="manifest" href="{% static 'manifest.json' %}" />
 
   {% block css %}
   <!-- Your stuff: Third-party CSS libraries go here -->
   {% compress css %}
-    <link href="{% static 'css/project.css' %}" rel="stylesheet" %}
+    <link href="{% static 'css/project.css' %}" rel="stylesheet" />
   {% endcompress %}
   {% endblock css %}
 
@@ -96,18 +79,13 @@
   <!-- Push Notifications -->
   <script src="{% static 'js/push-notifications.js' %}"></script>
   
-  <!-- Application Logic (must load after HTMX, html5-qrcode, and before project.js) -->
+  <!-- Application Logic -->
   <script src="{% static 'app.js' %}"></script>
-  
-  {% compress js %}
-    <script src="{% static 'js/project.js' %}"></script>
-  {% endcompress %}
   {% endblock javascript %}
 </head>
 <body class="{% block bodyclass %}{% endblock bodyclass %} bg-white text-gray-900">
-  {% block body %}
-  <!-- Navigation Bar -->
-  <nav class="bg-white border-b border-gray-200 shadow-sm">
+  <!-- Navbar superior -->
+  <nav class="navbar" style="@view-transition: auto;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-14">
         <div class="flex-shrink-0 flex items-center justify-center gap-2 h-14">
@@ -123,7 +101,7 @@
         <!-- Desktop Navigation -->
         <div class="hidden md:flex md:items-center md:space-x-8">
           {% if request.user.is_authenticated %}
-            <a hx-boost="true" class="bg-gray-900 text-white hover:bg-gray-800 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 navbar-btn" href="{% url 'protected_home' %}">Inicio</a>
+            <a class="bg-gray-900 text-white hover:bg-gray-800 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 navbar-btn" href="{% url 'protected_home' %}">Inicio</a>
             <a class="bg-red-600 text-white hover:bg-red-700 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 navbar-btn" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
           {% else %}
             <a id="log-in-link" class="bg-gray-900 text-white hover:bg-gray-800 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 navbar-btn ml-2" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
@@ -135,15 +113,15 @@
     <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200 shadow-sm">
       <div class="px-4 py-3 space-y-1">
         {% if request.user.is_authenticated %}
-          <a hx-boost="true" class="block px-3 py-2 rounded-lg text-red-600 font-semibold hover:bg-red-50 hover:text-red-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+          <a class="block px-3 py-2 rounded-lg text-red-600 font-semibold hover:bg-red-50 hover:text-red-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
         {% else %}
-          <a id="log-in-link-mobile" hx-boost="true" class="block px-3 py-2 rounded-lg text-gray-900 font-semibold hover:bg-gray-100 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+          <a id="log-in-link-mobile" class="block px-3 py-2 rounded-lg text-gray-900 font-semibold hover:bg-gray-100 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
         {% endif %}
       </div>
     </div>
   </nav>
 
-  <!-- Main Content with HTMX -->
+  <!-- Main Content -->
   <div id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
     {% if messages %}
       {% for message in messages %}
@@ -163,31 +141,29 @@
       {% endblock content %}
     {% endblock main %}
   </div>
-
-  {% endblock body %}
-
+  
   <!-- Bottom mobile navbar -->
   {% if request.user.is_authenticated %}
-  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10 border-t border-gray-200">
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10 border-t border-gray-200" style="@view-transition: auto;">
     <div class="grid grid-cols-5 text-center">
-      <a hx-boost="true" href="{% url 'qr' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'qr' %}bg-blue-50{% endif %}">
+      <a href="{% url 'qr' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'qr' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:qr-code" class="text-2xl {% if request.resolver_match.url_name == 'qr' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'qr' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Scan</span>
       </a>
-      <a hx-boost="true" href="{% url 'geo' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'geo' %}bg-blue-50{% endif %}">
+      <a href="{% url 'geo' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'geo' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:map-pin" class="text-2xl {% if request.resolver_match.url_name == 'geo' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'geo' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Geo</span>
       </a>
-      <a hx-boost="true" href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
+      <a href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:home" class="text-2xl {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Inicio</span>
       </a>
-      <a hx-boost="true" href="{% url 'push' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'push' %}bg-blue-50{% endif %}">
+      <a href="{% url 'push' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'push' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:bell" class="text-2xl {% if request.resolver_match.url_name == 'push' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'push' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Notifs</span>
       </a>
       {% with current_view=request.resolver_match.url_name %}
-      <a hx-boost="true" href="{% url 'account_logout' %}" class="nav-item flex flex-col items-center justify-center py-2 transition-colors {% if current_view == 'account_logout' %}bg-red-50{% else %}hover:bg-red-50{% endif %}">
+      <a href="{% url 'account_logout' %}" class="nav-item flex flex-col items-center justify-center py-2 transition-colors {% if current_view == 'account_logout' %}bg-red-50{% else %}hover:bg-red-50{% endif %}">
         <iconify-icon icon="lucide:user" class="text-2xl {% if current_view == 'account_logout' %}text-red-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if current_view == 'account_logout' %}text-red-600 font-semibold{% else %}text-gray-600{% endif %}">Salir</span>
       </a>
@@ -213,22 +189,6 @@
     {% endcompress %}
 
     <script>
-      // HTMX Configuration
-      htmx.config.refreshOnHistoryMiss = true;
-      htmx.config.historyCacheSize = 10;
-
-      // Configure HTMX to swap with main-content div
-      htmx.onLoad(function(content) {
-        // Reinitialize event listeners after HTMX swap
-        initializeMobileMenu();
-        initializeMobileProfileMenu();
-      });
-
-      // Scroll to top on page transition
-      document.addEventListener('htmx:beforeSwap', function(event) {
-        window.scrollTo({top: 0, left: 0, behavior: 'smooth'});
-      });
-
       // Mobile menu toggle functionality
       function initializeMobileMenu() {
         const mobileMenuButton = document.getElementById('mobile-menu-button');
@@ -241,13 +201,13 @@
             const isHidden = mobileMenu.classList.contains('hidden');
             if (isHidden) {
               mobileMenu.classList.remove('hidden');
-              hamburgerOpen.classList.add('hidden');
-              hamburgerClose.classList.remove('hidden');
+              hamburgerOpen?.classList.add('hidden');
+              hamburgerClose?.classList.remove('hidden');
               this.setAttribute('aria-expanded', 'true');
             } else {
               mobileMenu.classList.add('hidden');
-              hamburgerOpen.classList.remove('hidden');
-              hamburgerClose.classList.add('hidden');
+              hamburgerOpen?.classList.remove('hidden');
+              hamburgerClose?.classList.add('hidden');
               this.setAttribute('aria-expanded', 'false');
             }
           });

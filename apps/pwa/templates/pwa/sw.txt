@@ -106,7 +106,6 @@ const urlsToCache = [
   
   // Fuentes y librerías externas (se cachean con no-cors)
   'https://cdn.tailwindcss.com',
-  'https://unpkg.com/htmx.org@2.0.0',
   'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
 ];

@@ -15,6 +15,9 @@ let userLocation = null;
 let notificationPermissionGranted = false;
 let pageVisited = false;
 let notificationTimer = null;
+let notificationsInitialized = false;
+let accessibilityInitialized = false;
+let mapsScriptInjected = false;
 
 // Page detection helpers
 function isPushPage() {
@@ -267,6 +270,9 @@ function resetearEscaner() {
  * Inicializar controles de accesibilidad (ARIA, focus, etc.)
  */
 function initializeAccessibilityControls() {
+    if (accessibilityInitialized) return;
+    accessibilityInitialized = true;
+
     // Manejar el botón de tips para actualizar aria-expanded
     const tipsButton = document.querySelector('[aria-controls="tips-content"]');
     if (tipsButton) {
@@ -336,6 +342,10 @@ function cargarGoogleMapsAPI() {
     const mapContainer = document.querySelector('[data-google-maps-key]');
     if (!mapContainer) return;
 
+    if (mapsScriptInjected || (typeof google !== 'undefined' && google.maps)) {
+        return;
+    }
+
     const apiKey = mapContainer?.dataset.googleMapsKey || '';
 
     if (!apiKey) {
@@ -350,6 +360,7 @@ function cargarGoogleMapsAPI() {
     script.onerror = () => {
         console.error('Error al cargar Google Maps API');
     };
+    mapsScriptInjected = true;
     document.head.appendChild(script);
 }
 
@@ -485,21 +496,26 @@ function inicializarMapa(location) {
     infoWindow.open(map, marker);
 }
 
-// Verificar que html5-qrcode esté cargado
-window.addEventListener('DOMContentLoaded', async () => {
+async function runPageInitializers() {
     if (typeof Html5Qrcode === 'undefined') {
         console.error('La librería html5-qrcode no está disponible');
         mostrarMensaje('⚠️ Error al cargar el escáner\nRecargá la página', 'error');
-    } else {
-        console.log('html5-qrcode library cargada correctamente');
     }
 
     initializeAccessibilityControls();
 
-    // Solo cargar Google Maps en la página de geolocalización
     if (isGeoPage()) {
         cargarGoogleMapsAPI();
     }
+
+    if (isPushPage()) {
+        maybeInitNotifications();
+    }
+}
+
+// Verificar que html5-qrcode esté cargado y disparar inicializadores al cargar la página
+window.addEventListener('DOMContentLoaded', async () => {
+    await runPageInitializers();
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready
@@ -794,6 +810,11 @@ async function enviarNotificacionBienvenida() {
  * Inicializar el sistema de notificaciones locales
  */
 async function inicializarNotificaciones() {
+    if (notificationsInitialized) {
+        return;
+    }
+    notificationsInitialized = true;
+
     addNotificationLog('🚀 Iniciando sistema de notificaciones locales...', 'info');
 
     // Solicitar permisos de notificación
