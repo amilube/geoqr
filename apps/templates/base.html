@@ -112,7 +112,7 @@
       <div class="flex justify-between items-center h-14">
         <div class="flex-shrink-0 flex items-center justify-center gap-2 h-14">
           <img src="{% static 'icons/icon.svg' %}" alt="GeoQR logotipo" class="h-10 w-10 object-contain" style="min-width:2.5rem; min-height:2.5rem;"/>
-          <a hx-boost="true" class="text-2xl font-extrabold text-gray-900 hover:text-gray-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 flex items-center" style="line-height:1;" href="{% url 'home' %}">GeoQR</a>
+          <span class="text-2xl font-extrabold text-gray-900 flex items-center" style="line-height:1;">GeoQR</span>
         </div>
         <!-- Mobile login button (no hamburger) -->
         {% if not request.user.is_authenticated %}
