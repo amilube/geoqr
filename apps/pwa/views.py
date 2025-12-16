@@ -195,7 +195,7 @@ def send_test_notification(request):
             "body": body,
             "icon": "/static/icons/android/android-launchericon-192-192.png",
             "badge": "/static/icons/qeoqr_icon_monochrome.svg",
-            "data": {"url": "/", "timestamp": timezone.now().isoformat()},
+            "data": {"url": "/home/", "timestamp": timezone.now().isoformat()},
         }
 
         devices.send_message(message=json.dumps(message))
