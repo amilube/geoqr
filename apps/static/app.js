@@ -21,6 +21,11 @@ let mapsScriptInjected = false;
 let mapsLibraryPromise = null;
 let notificationPromptRegistered = false;
 let pendingPermissionResolver = null;
+
+document.removeEventListener('pointerdown', promptOnceOnInteraction, true);
+document.removeEventListener('pointerup', promptOnceOnInteraction, true);
+document.removeEventListener('wheel', promptOnceOnInteraction, true);
+document.removeEventListener('scroll', promptOnceOnInteraction, true);
 function isPushPage() {
     return window.location.pathname.startsWith('/push');
 }
@@ -33,6 +38,9 @@ function isGeoPage() {
  * Agregar log visible en la UI
  * @param {string} message - Mensaje del log
  * @param {string} type - Tipo: 'info', 'success', 'warning', 'error'
+        document.addEventListener('pointerup', promptOnceOnInteraction, true);
+        document.addEventListener('wheel', promptOnceOnInteraction, true);
+        document.addEventListener('scroll', promptOnceOnInteraction, true);
  */
 function addNotificationLog(message, type = 'info') {
     const logContainer = document.getElementById('notification-logs');
@@ -907,11 +915,7 @@ async function inicializarNotificaciones() {
         const promptOnceOnInteraction = async () => {
             document.removeEventListener('click', promptOnceOnInteraction, true);
             document.removeEventListener('touchend', promptOnceOnInteraction, true);
-            document.removeEventListener('touchstart', promptOnceOnInteraction, true);
             document.removeEventListener('pointerdown', promptOnceOnInteraction, true);
-            document.removeEventListener('pointerup', promptOnceOnInteraction, true);
-            document.removeEventListener('wheel', promptOnceOnInteraction, true);
-            document.removeEventListener('scroll', promptOnceOnInteraction, true);
             document.removeEventListener('keydown', promptOnceOnInteraction, true);
             try {
                 await solicitarPermisoNotificaciones();
@@ -923,11 +927,7 @@ async function inicializarNotificaciones() {
         // Registrar listeners en fase de captura para asegurar que se dispare con el primer gesto.
         document.addEventListener('click', promptOnceOnInteraction, true);
         document.addEventListener('touchend', promptOnceOnInteraction, true);
-        document.addEventListener('touchstart', promptOnceOnInteraction, true);
         document.addEventListener('pointerdown', promptOnceOnInteraction, true);
-        document.addEventListener('pointerup', promptOnceOnInteraction, true);
-        document.addEventListener('wheel', promptOnceOnInteraction, true);
-        document.addEventListener('scroll', promptOnceOnInteraction, true);
         document.addEventListener('keydown', promptOnceOnInteraction, true);
     }
 
