@@ -19,6 +19,7 @@ let notificationsInitialized = false;
 let accessibilityInitialized = false;
 let mapsScriptInjected = false;
 let mapsLibraryPromise = null;
+let notificationPromptRegistered = false;
 
 // Page detection helpers
 function isPushPage() {
@@ -867,8 +868,27 @@ async function inicializarNotificaciones() {
 
     addNotificationLog('🚀 Iniciando sistema de notificaciones locales...', 'info');
 
-    // Solicitar permisos de notificación
+    // Solicitar permisos de notificación con reintento en interacción del usuario (algunas
+    // plataformas móviles requieren gesto explícito, ej. TWA instalada desde Play Store).
     const granted = await solicitarPermisoNotificaciones();
+
+    if (!granted && !notificationPromptRegistered && Notification.permission === 'default') {
+        notificationPromptRegistered = true;
+
+        const promptOnceOnInteraction = async () => {
+            document.removeEventListener('click', promptOnceOnInteraction, true);
+            document.removeEventListener('touchend', promptOnceOnInteraction, true);
+            try {
+                await solicitarPermisoNotificaciones();
+            } catch (error) {
+                console.debug('Permiso de notificaciones no concedido tras interacción:', error);
+            }
+        };
+
+        // Registrar listeners en fase de captura para asegurar que se dispare con el primer tap/click.
+        document.addEventListener('click', promptOnceOnInteraction, true);
+        document.addEventListener('touchend', promptOnceOnInteraction, true);
+    }
 
     if (granted) {
         addNotificationLog('✅ Notificaciones locales habilitadas', 'success');
