@@ -36,35 +36,41 @@
       opacity: 0.6;
       transition: opacity 200ms ease-in;
     }
-
     .htmx-request.htmx-swapping #main-content {
       opacity: 0;
       transition: opacity 150ms ease-out;
     }
-
     .htmx-settling #main-content {
       opacity: 1;
       transition: opacity 300ms ease-in;
     }
-
     /* Smooth height transitions */
     #main-content {
       transition: all 300ms ease-in-out;
     }
-
     /* Loading indicator */
     .htmx-request .htmx-indicator {
       display: inline-block;
     }
-
     .htmx-indicator {
       display: none;
       animation: spin 1s linear infinite;
     }
-
     @keyframes spin {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
+    }
+
+    /* Uniform navbar button style */
+    .navbar-btn {
+      font-size: 1rem !important;
+      padding: 0.5rem 1.25rem !important;
+      border-radius: 0.5rem !important;
+      font-weight: 600 !important;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+      line-height: 1.25 !important;
+      min-height: 2.5rem !important;
+      display: inline-block;
     }
   </style>
 
@@ -104,12 +110,13 @@
   <nav class="bg-white border-b border-gray-200 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-14">
-        <div class="flex-shrink-0">
-          <a hx-boost="true" class="text-2xl font-semibold text-gray-900 hover:text-gray-700 transition" href="{% url 'home' %}">GeoQR</a>
+        <div class="flex-shrink-0 flex items-center justify-center gap-2 h-14">
+          <img src="{% static 'icons/icon.svg' %}" alt="GeoQR logotipo" class="h-10 w-10 object-contain" style="min-width:2.5rem; min-height:2.5rem;"/>
+          <a hx-boost="true" class="text-2xl font-extrabold text-gray-900 hover:text-gray-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 flex items-center" style="line-height:1;" href="{% url 'home' %}">GeoQR</a>
         </div>
         <!-- Mobile menu button -->
         <div class="flex md:hidden">
-          <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none transition" aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
+          <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-800 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 transition" aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
             <svg id="hamburger-open" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -121,21 +128,21 @@
         <!-- Desktop Navigation -->
         <div class="hidden md:flex md:items-center md:space-x-8">
           {% if request.user.is_authenticated %}
-            <a hx-boost="true" class="text-white hover:text-blue-100 font-medium transition" href="{% url 'protected_home' %}">Inicio</a>
-            <a class="text-white hover:text-blue-100 font-medium transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+            <a hx-boost="true" class="bg-gray-900 text-white hover:bg-gray-800 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 navbar-btn" href="{% url 'protected_home' %}">Inicio</a>
+            <a class="bg-red-600 text-white hover:bg-red-700 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 navbar-btn" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
           {% else %}
-            <a id="log-in-link" class="text-white hover:text-blue-100 font-medium transition" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+            <a id="log-in-link" class="bg-gray-900 text-white hover:bg-gray-800 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 navbar-btn ml-2" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
           {% endif %}
         </div>
       </div>
     </div>
     <!-- Mobile Navigation Menu -->
-    <div id="mobile-menu" class="hidden md:hidden bg-blue-700">
-      <div class="px-4 py-2 space-y-1">
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200 shadow-sm">
+      <div class="px-4 py-3 space-y-1">
         {% if request.user.is_authenticated %}
-          <a hx-boost="true" class="block px-3 py-2 rounded-lg text-white font-medium hover:bg-blue-600 transition" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+          <a hx-boost="true" class="block px-3 py-2 rounded-lg text-red-600 font-semibold hover:bg-red-50 hover:text-red-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
         {% else %}
-          <a id="log-in-link-mobile" hx-boost="true" class="block px-3 py-2 rounded-lg text-white font-medium hover:bg-blue-600 transition" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+          <a id="log-in-link-mobile" hx-boost="true" class="block px-3 py-2 rounded-lg text-gray-900 font-semibold hover:bg-gray-100 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
         {% endif %}
       </div>
     </div>
@@ -192,7 +199,7 @@
     <!-- Mobile Profile Menu -->
     <div id="mobile-profile-menu" class="hidden absolute bottom-full right-0 bg-white rounded-t-lg shadow-lg text-gray-800 min-w-max">
       {% if request.user.is_authenticated %}
-        <a href="{% url 'account_logout' %}" class="block px-4 py-2 hover:bg-gray-100 border-b border-gray-100 font-medium text-red-600">{% translate "Sign Out" %}</a>
+        <a href="{% url 'account_logout' %}" class="block px-4 py-2 hover:bg-red-50 border-b border-gray-100 font-medium text-red-600 hover:text-red-700">{% translate "Sign Out" %}</a>
       {% else %}
         <a href="{% url 'account_login' %}" class="block px-4 py-2 hover:bg-gray-100 font-medium text-blue-600">{% translate "Sign In" %}</a>
       {% endif %}

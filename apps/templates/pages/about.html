@@ -1,3 +1,37 @@
 {% extends "base.html" %}
 
+{% block content %}
+  <style>
+    button, a { min-height: 48px; font-size: clamp(16px, 5vw, 22px); }
+    .text-3xl { font-size: clamp(26px, 6vw, 36px); }
+    .text-lg { font-size: clamp(16px, 4vw, 20px); line-height: 1.6; }
+    button:focus-visible, a:focus-visible { outline: 3px solid #4f46e5; outline-offset: 2px; }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+
+  <div class="max-w-4xl mx-auto">
+    <section class="bg-white border-b border-gray-200 px-4 py-6 -mx-4 sm:-mx-6 lg:-mx-8 mb-6">
+      <h1 class="text-3xl font-semibold text-gray-900 mb-2">Sobre GeoQR</h1>
+      <p class="text-lg text-gray-600">Una app ligera para escanear códigos QR, recibir notificaciones y ubicarte rápidamente.</p>
+    </section>
+
+    <div class="px-4 py-6 space-y-4">
+      <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 space-y-3">
+        <h2 class="text-xl font-bold text-gray-900">Propósito</h2>
+        <p class="text-sm text-gray-700">GeoQR combina herramientas móviles esenciales con una interfaz limpia y accesible.</p>
+      </div>
+      <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 space-y-3">
+        <h2 class="text-xl font-bold text-gray-900">Características</h2>
+        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+          <li>Escaneo de códigos QR con feedback inmediato.</li>
+          <li>Notificaciones push configurables.</li>
+          <li>Geolocalización con vista clara de coordenadas.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
 

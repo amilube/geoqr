@@ -1,6 +1,14 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block main %}
-  {% block content %}
-  {% endblock content %}
+  <div class="max-w-5xl mx-auto px-4 py-10 space-y-6">
+    <header class="bg-white border-b border-gray-200 px-4 py-6 rounded-3xl shadow-sm">
+      <h1 class="text-3xl font-semibold text-gray-900">{% block head_title %}{% endblock head_title %}</h1>
+      <p class="text-gray-600 text-base mt-2">Administrá la configuración de tu cuenta en una vista simple y enfocada.</p>
+    </header>
+    <section class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
+      {% block content %}{% endblock content %}
+    </section>
+  </div>
 {% endblock main %}
