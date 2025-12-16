@@ -16,6 +16,15 @@ let notificationPermissionGranted = false;
 let pageVisited = false;
 let notificationTimer = null;
 
+// Page detection helpers
+function isPushPage() {
+    return window.location.pathname.startsWith('/push');
+}
+
+function isGeoPage() {
+    return window.location.pathname.startsWith('/geo');
+}
+
 /**
  * Agregar log visible en la UI
  * @param {string} message - Mensaje del log
@@ -323,8 +332,10 @@ function initMap() {
  * Cargar la API de Google Maps dinámicamente
  */
 function cargarGoogleMapsAPI() {
-    // Obtener la API key desde el backend (data attribute en el contenedor de mapa)
+    // Solo cargar en la página de geolocalización
     const mapContainer = document.querySelector('[data-google-maps-key]');
+    if (!mapContainer) return;
+
     const apiKey = mapContainer?.dataset.googleMapsKey || '';
 
     if (!apiKey) {
@@ -483,16 +494,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         console.log('html5-qrcode library cargada correctamente');
     }
 
-    // Inicializar controles de accesibilidad
     initializeAccessibilityControls();
 
-    // Cargar Google Maps API (solo si hay key provisionada por el backend)
-    cargarGoogleMapsAPI();
+    // Solo cargar Google Maps en la página de geolocalización
+    if (isGeoPage()) {
+        cargarGoogleMapsAPI();
+    }
 
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready
             .then((registration) => {
-                // Registrar Periodic Background Sync si está soportado
                 registerPeriodicSync(registration);
             })
             .catch((error) => console.debug('Service worker registration failed:', error));
@@ -818,11 +829,17 @@ async function inicializarNotificaciones() {
     });
 }
 
-// Inicializar notificaciones cuando la página cargue
+// Inicializar notificaciones cuando la página relevante cargue
+function maybeInitNotifications() {
+    if (isPushPage()) {
+        inicializarNotificaciones();
+    }
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', inicializarNotificaciones);
+    document.addEventListener('DOMContentLoaded', maybeInitNotifications);
 } else {
-    inicializarNotificaciones();
+    maybeInitNotifications();
 }
 
 // Escuchar mensajes del Service Worker para navegación
