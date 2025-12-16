@@ -646,6 +646,10 @@ async function solicitarPermisoNotificaciones() {
  * });
  */
 async function enviarNotificacion(title, options) {
+    // Forzar assets de marca si no vienen en options
+    const icon = options.icon || '/static/icons/android/android-launchericon-192-192.png';
+    const badge = options.badge || '/static/icons/qeoqr_icon_monochrome.svg';
+    const body = options.body || '';
     // Verificar permisos antes de intentar enviar
     const currentPermission = Notification.permission;
 
@@ -682,9 +686,24 @@ async function enviarNotificacion(title, options) {
     }
 
     try {
-        // Si hay Service Worker activo, usar showNotification
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        // Usar siempre la API del Service Worker (aunque todavía no controle la página)
+        // Esto permite que navegadores como iOS Safari muestren la notificación nativa
+        if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.ready;
+
+            if (!registration.showNotification) {
+                // Fallback a la API clásica si el SW no soporta showNotification
+                const notification = new Notification(title, { ...options, body, icon, badge });
+                addNotificationLog(`✅ Notificación enviada directamente`, 'success');
+                addNotificationLog(`   📋 Título: "${title}"`, 'info');
+
+                notification.onclick = function () {
+                    addNotificationLog('👆 Usuario hizo clic en la notificación', 'info');
+                    window.focus();
+                    notification.close();
+                };
+                return;
+            }
 
             // Usar protocol handler para mejor integración nativa
             const targetPath = options.data?.path || '';
@@ -693,11 +712,10 @@ async function enviarNotificacion(title, options) {
             // Agregar data.url para que el Service Worker maneje el click correctamente
             const swOptions = {
                 ...options,
-                // Asegurar que body está presente
-                body: options.body || '',
-                // Usar SVG para badge (monocromo) en lugar de PNG
-                badge: '/static/icons/qeoqr_icon_monochrome.svg',
-                icon: options.icon || '/static/icons/android/android-launchericon-192-192.png',
+                // Asegurar que body/icon/badge están presentes
+                body,
+                badge,
+                icon,
                 data: {
                     url: '/',
                     protocolUrl: protocolUrl,
@@ -724,7 +742,7 @@ async function enviarNotificacion(title, options) {
             addNotificationLog(`   🔗 Protocol: ${protocolUrl}`, 'info');
         } else {
             // Si no hay Service Worker, usar el constructor tradicional
-            const notification = new Notification(title, options);
+            const notification = new Notification(title, { ...options, body, icon, badge });
             addNotificationLog(`✅ Notificación enviada directamente`, 'success');
             addNotificationLog(`   📋 Título: "${title}"`, 'info');
 

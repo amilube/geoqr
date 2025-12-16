@@ -138,7 +138,8 @@
   </div>
 
   <script>
-    const VAPID_PUBLIC_KEY = '{{ vapid_public_key }}';
+    // Evitar redeclarar al rehidratar con HTMX
+    window.VAPID_PUBLIC_KEY = window.VAPID_PUBLIC_KEY || '{{ vapid_public_key }}';
     
     // Actualizar UI con el estado actual
     async function updateUI() {
