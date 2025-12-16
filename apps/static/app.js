@@ -467,7 +467,14 @@ function ubicacionError(error) {
             mensaje = '❌ Permiso denegado\nHabilita el acceso en configuración';
             break;
         case error.POSITION_UNAVAILABLE:
-            mensaje = '❌ Ubicación no disponible';
+            {
+                const msg = (error.message || '').toLowerCase();
+                const gpsOff = msg.includes('location') && msg.includes('disabled');
+                const suggestion = gpsOff
+                    ? '\nActiva la ubicación/GPS en tu dispositivo y reintenta.'
+                    : '\nVerifica que el GPS esté activado y tengas señal.';
+                mensaje = `❌ Ubicación no disponible${suggestion}`;
+            }
             break;
         case error.TIMEOUT:
             mensaje = '❌ Tiempo agotado';
