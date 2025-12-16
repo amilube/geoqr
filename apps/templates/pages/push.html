@@ -213,6 +213,7 @@
       } catch (error) {
         console.error('Error al actualizar UI:', error);
       }
+    }
     
     // Solicitar permisos manualmente
     async function handleRequestPermission() {
@@ -224,7 +225,6 @@
         mostrarMensaje('❌ Permiso no concedido', 'error');
       }
       await updateUI();
-    }
     }
     
     // Suscribirse a notificaciones
