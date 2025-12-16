@@ -373,6 +373,11 @@ function solicitarUbicacion() {
         return;
     }
 
+    if (!window.isSecureContext) {
+        mostrarMensaje('Activa HTTPS (o usa localhost) para permitir geolocalización', 'error');
+        return;
+    }
+
     mostrarMensaje('Solicitando tu ubicación...', 'info');
 
     navigator.geolocation.getCurrentPosition(
@@ -594,6 +599,12 @@ if ('serviceWorker' in navigator) {
 async function solicitarPermisoNotificaciones() {
     if (!('Notification' in window)) {
         addNotificationLog('❌ Este navegador no soporta notificaciones', 'error');
+        return false;
+    }
+
+    // Las notificaciones solo se pueden pedir desde contextos seguros
+    if (!window.isSecureContext) {
+        addNotificationLog('❌ Necesitás HTTPS o localhost para solicitar permisos de notificaciones', 'error');
         return false;
     }
 

@@ -197,9 +197,9 @@
     // Suscribirse a notificaciones
     async function handleSubscribe() {
       try {
-        const permission = await Notification.requestPermission();
-        if (permission !== 'granted') {
-          mostrarMensaje('❌ Permisos denegados', 'error');
+        const permissionGranted = await solicitarPermisoNotificaciones();
+        if (!permissionGranted) {
+          mostrarMensaje('❌ Permisos denegados o bloqueados', 'error');
           return;
         }
         
