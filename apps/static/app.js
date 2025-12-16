@@ -349,17 +349,9 @@ function cargarGoogleMapsAPI() {
         return mapsLibraryPromise;
     }
 
-    // Si la API ya está presente (por otro script), usar el nuevo loader directamente
-    if (typeof google !== 'undefined' && google.maps?.importLibrary) {
-        mapsLibraryPromise = Promise.all([
-            google.maps.importLibrary('maps'),
-            google.maps.importLibrary('marker')
-        ]).then(() => {
-            console.log('Google Maps API cargada correctamente (loader nativo presente)');
-        }).catch((error) => {
-            console.error('Error al importar librerías de Google Maps', error);
-            throw error;
-        });
+    // Si la API ya está presente, no vuelvas a cargarla
+    if (typeof google !== 'undefined' && google.maps) {
+        mapsLibraryPromise = Promise.resolve();
         return mapsLibraryPromise;
     }
 
@@ -372,18 +364,18 @@ function cargarGoogleMapsAPI() {
 
     mapsLibraryPromise = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
+        // Usar libraries=maps,marker para evitar importLibrary en entornos donde no está disponible
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker`;
         script.async = true;
         script.defer = true;
-        script.onload = async () => {
-            try {
-                await google.maps.importLibrary('maps');
-                await google.maps.importLibrary('marker');
-                console.log('Google Maps API cargada correctamente (importLibrary)');
+        script.onload = () => {
+            if (typeof google !== 'undefined' && google.maps) {
+                console.log('Google Maps API cargada correctamente (libraries param)');
                 resolve();
-            } catch (error) {
-                console.error('Error al importar librerías de Google Maps', error);
-                reject(error);
+            } else {
+                const err = new Error('Google Maps no se inicializó');
+                console.error(err);
+                reject(err);
             }
         };
         script.onerror = () => {
