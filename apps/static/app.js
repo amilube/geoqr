@@ -372,20 +372,19 @@ function cargarGoogleMapsAPI() {
 
     mapsLibraryPromise = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        // Cargar con libraries directamente (fallback seguro para Android)
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=maps,marker`;
+        // Usar loading=async SIN libraries para usar el nuevo importLibrary
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
         script.async = true;
         script.defer = true;
-        script.onload = () => {
+        script.onload = async () => {
             try {
-                if (typeof google !== 'undefined' && google.maps) {
-                    console.log('✓ Google Maps API cargada correctamente');
-                    resolve();
-                } else {
-                    throw new Error('Google Maps no se inicializó correctamente');
-                }
+                // Usar el nuevo loader (requiere loading=async sin libraries)
+                await google.maps.importLibrary('maps');
+                await google.maps.importLibrary('marker');
+                console.log('✓ Google Maps API cargada correctamente (importLibrary)');
+                resolve();
             } catch (error) {
-                console.error('Error al cargar Google Maps API', error);
+                console.error('Error al importar librerías de Google Maps', error);
                 reject(error);
             }
         };
