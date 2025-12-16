@@ -170,14 +170,6 @@
   {% if request.user.is_authenticated %}
   <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10 border-t border-gray-200">
     <div class="grid grid-cols-5 text-center">
-      <a hx-boost="true" href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
-        <iconify-icon icon="lucide:home" class="text-2xl {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
-        <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Inicio</span>
-      </a>
-      <a hx-boost="true" href="{% url 'push' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'push' %}bg-blue-50{% endif %}">
-        <iconify-icon icon="lucide:bell" class="text-2xl {% if request.resolver_match.url_name == 'push' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
-        <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'push' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Notifs</span>
-      </a>
       <a hx-boost="true" href="{% url 'qr' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'qr' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:qr-code" class="text-2xl {% if request.resolver_match.url_name == 'qr' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'qr' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Scan</span>
@@ -185,6 +177,14 @@
       <a hx-boost="true" href="{% url 'geo' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'geo' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:map-pin" class="text-2xl {% if request.resolver_match.url_name == 'geo' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'geo' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Geo</span>
+      </a>
+      <a hx-boost="true" href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
+        <iconify-icon icon="lucide:home" class="text-2xl {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
+        <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Inicio</span>
+      </a>
+      <a hx-boost="true" href="{% url 'push' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'push' %}bg-blue-50{% endif %}">
+        <iconify-icon icon="lucide:bell" class="text-2xl {% if request.resolver_match.url_name == 'push' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
+        <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'push' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Notifs</span>
       </a>
       {% with current_view=request.resolver_match.url_name %}
       <a hx-boost="true" href="{% url 'account_logout' %}" class="nav-item flex flex-col items-center justify-center py-2 transition-colors {% if current_view == 'account_logout' %}bg-red-50{% else %}hover:bg-red-50{% endif %}">
