@@ -18,6 +18,7 @@ let notificationTimer = null;
 let notificationsInitialized = false;
 let accessibilityInitialized = false;
 let mapsScriptInjected = false;
+let mapsLibraryPromise = null;
 
 // Page detection helpers
 function isPushPage() {
@@ -342,26 +343,57 @@ function cargarGoogleMapsAPI() {
     const mapContainer = document.querySelector('[data-google-maps-key]');
     if (!mapContainer) return;
 
-    if (mapsScriptInjected || (typeof google !== 'undefined' && google.maps)) {
-        return;
+    if (mapsLibraryPromise) {
+        return mapsLibraryPromise;
+    }
+
+    // Si la API ya está presente (por otro script), usar el nuevo loader directamente
+    if (typeof google !== 'undefined' && google.maps?.importLibrary) {
+        mapsLibraryPromise = Promise.all([
+            google.maps.importLibrary('maps'),
+            google.maps.importLibrary('marker')
+        ]).then(() => {
+            console.log('Google Maps API cargada correctamente (loader nativo presente)');
+        }).catch((error) => {
+            console.error('Error al importar librerías de Google Maps', error);
+            throw error;
+        });
+        return mapsLibraryPromise;
     }
 
     const apiKey = mapContainer?.dataset.googleMapsKey || '';
 
     if (!apiKey) {
         mostrarMensaje('Falta configurar GOOGLE_MAPS_JS_API_KEY (restringida por dominio). Contactá al administrador.', 'error');
-        return;
+        return null;
     }
 
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&callback=initMap`;
-    script.async = true;
-    script.defer = true;
-    script.onerror = () => {
-        console.error('Error al cargar Google Maps API');
-    };
-    mapsScriptInjected = true;
-    document.head.appendChild(script);
+    mapsLibraryPromise = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
+        script.async = true;
+        script.defer = true;
+        script.onload = async () => {
+            try {
+                await google.maps.importLibrary('maps');
+                await google.maps.importLibrary('marker');
+                console.log('Google Maps API cargada correctamente (importLibrary)');
+                resolve();
+            } catch (error) {
+                console.error('Error al importar librerías de Google Maps', error);
+                reject(error);
+            }
+        };
+        script.onerror = () => {
+            const err = new Error('Error al cargar Google Maps API');
+            console.error(err);
+            reject(err);
+        };
+        mapsScriptInjected = true;
+        document.head.appendChild(script);
+    });
+
+    return mapsLibraryPromise;
 }
 
 /**
@@ -449,8 +481,15 @@ function ubicacionError(error) {
  * Inicializar el mapa de Google Maps con la ubicación del usuario
  * @param {Object} location - Objeto con lat y lng
  */
-function inicializarMapa(location) {
-    // Verificar que Google Maps esté disponible
+async function inicializarMapa(location) {
+    try {
+        await cargarGoogleMapsAPI();
+    } catch (error) {
+        mostrarMensaje('🗺️ Google Maps no está disponible', 'error');
+        return;
+    }
+
+    // Verificar que Google Maps esté disponible tras el loader
     if (typeof google === 'undefined' || !google.maps) {
         mostrarMensaje('🗺️ Google Maps no está disponible', 'error');
         return;
