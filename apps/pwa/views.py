@@ -1,5 +1,6 @@
 import hashlib
 import json
+import secrets
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
@@ -164,9 +165,34 @@ def send_test_notification(request):
             )
 
         # Enviar notificación a todos los dispositivos
+        # establece una variable que devuelva aleatoriamente un emoji dentro de 15 opciones. LA opción  que se elija se usará en el body del mensaje
+
+        emojis = [
+            "😀",
+            "🎉",
+            "🚀",
+            "🌟",
+            "🔥",
+            "💡",
+            "🎈",
+            "📢",
+            "🛠️",
+            "⚡",
+            "🎯",
+            "📣",
+            "🏆",
+            "✨",
+            "🧪",
+        ]
+        chosen_emoji = secrets.choice(emojis)
+        body = (
+            "Esta es una notificación de prueba desde GeoQR. "
+            f"Si ves que este emoji ({chosen_emoji}) cambia "
+            "¡Todo funciona correctamente!"
+        )
         message = {
-            "title": "🧪 Notificación de Prueba",
-            "body": "Esta es una notificación de prueba desde GeoQR. ¡Todo funciona correctamente!",
+            "title": "🔔 Notificación de Prueba",
+            "body": body,
             "icon": "/static/icons/android/android-launchericon-192-192.png",
             "badge": "/static/icons/qeoqr_icon_monochrome.svg",
             "data": {"url": "/", "timestamp": timezone.now().isoformat()},
