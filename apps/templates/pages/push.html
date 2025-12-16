@@ -145,6 +145,21 @@
     async function updateUI() {
       try {
         const status = await window.pushNotifications.checkStatus();
+
+        // UI helper to avoid flicker when we already know the state
+        const setSubscriptionUI = (subscribed) => {
+          const subscriptionDiv = document.getElementById('subscription-status');
+          if (subscribed) {
+            subscriptionDiv.textContent = '✅ Suscripción activa';
+            subscriptionDiv.className = 'bg-green-100 text-green-900 rounded-lg p-3 text-sm font-semibold';
+          } else {
+            subscriptionDiv.textContent = '❌ No suscrito';
+            subscriptionDiv.className = 'bg-gray-100 rounded-lg p-3 text-sm font-semibold';
+          }
+          document.getElementById('subscribe-btn').disabled = subscribed || !status.supported;
+          document.getElementById('test-btn').disabled = !subscribed;
+          document.getElementById('unsubscribe-btn').disabled = !subscribed;
+        };
         
         // Actualizar estado de permisos
         const permissionDiv = document.getElementById('permission-status');
@@ -169,14 +184,7 @@
         permissionDiv.className = `${permissionColor} rounded-lg p-3 text-sm font-semibold`;
         
         // Actualizar estado de suscripción
-        const subscriptionDiv = document.getElementById('subscription-status');
-        if (status.subscribed) {
-          subscriptionDiv.textContent = '✅ Suscripción activa';
-          subscriptionDiv.className = 'bg-green-100 text-green-900 rounded-lg p-3 text-sm font-semibold';
-        } else {
-          subscriptionDiv.textContent = '❌ No suscrito';
-          subscriptionDiv.className = 'bg-gray-100 rounded-lg p-3 text-sm font-semibold';
-        }
+        setSubscriptionUI(status.subscribed);
         
         // Actualizar info del navegador
         const browserDiv = document.getElementById('browser-info');
@@ -184,10 +192,8 @@
         browserDiv.textContent = `${browserInfo} ${status.supported ? '✅' : '❌'}`;
         browserDiv.className = status.supported ? 'bg-green-100 text-green-900 rounded-lg p-3 text-sm font-semibold' : 'bg-red-100 text-red-900 rounded-lg p-3 text-sm font-semibold';
         
-        // Actualizar botones
-        document.getElementById('subscribe-btn').disabled = status.subscribed || !status.supported;
-        document.getElementById('test-btn').disabled = !status.subscribed;
-        document.getElementById('unsubscribe-btn').disabled = !status.subscribed;
+        // Mantener consistencia con el helper
+        setSubscriptionUI(status.subscribed);
         
       } catch (error) {
         console.error('Error al actualizar UI:', error);
@@ -205,6 +211,13 @@
         
         const subscription = await window.pushNotifications.subscribe(VAPID_PUBLIC_KEY);
         const result = await window.pushNotifications.register(subscription);
+
+        // Reflejar inmediatamente el nuevo estado sin esperar relecturas del SW
+        document.getElementById('subscription-status').textContent = '✅ Suscripción activa';
+        document.getElementById('subscription-status').className = 'bg-green-100 text-green-900 rounded-lg p-3 text-sm font-semibold';
+        document.getElementById('subscribe-btn').disabled = true;
+        document.getElementById('test-btn').disabled = false;
+        document.getElementById('unsubscribe-btn').disabled = false;
         
         mostrarMensaje('✅ ¡Suscripción exitosa!', 'success');
         await updateUI();
