@@ -1,0 +1,15 @@
+{% extends "allauth/layouts/entrance.html" %}
+{% load i18n %}
+{% block page_heading %}Salir de la aplicación{% endblock %}
+{% block title %}Salir de la aplicación{% endblock title %}
+{% block content %}
+  <div class="mb-8 text-center">
+    <p class="text-lg text-gray-700">¿Seguro que desea cerrar sesión?</p>
+  </div>
+  <form method="post" action="{% url 'account_logout' %}" class="flex flex-col items-center gap-4">
+    {% csrf_token %}
+    <button type="submit" class="bg-red-600 text-white hover:bg-red-700 font-semibold rounded-lg px-6 py-2 text-base shadow-sm transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700">
+      Cerrar sesión
+    </button>
+  </form>
+{% endblock %}

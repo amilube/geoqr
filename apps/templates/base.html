@@ -114,17 +114,12 @@
           <img src="{% static 'icons/icon.svg' %}" alt="GeoQR logotipo" class="h-10 w-10 object-contain" style="min-width:2.5rem; min-height:2.5rem;"/>
           <a hx-boost="true" class="text-2xl font-extrabold text-gray-900 hover:text-gray-700 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 flex items-center" style="line-height:1;" href="{% url 'home' %}">GeoQR</a>
         </div>
-        <!-- Mobile menu button -->
+        <!-- Mobile login button (no hamburger) -->
+        {% if not request.user.is_authenticated %}
         <div class="flex md:hidden">
-          <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-800 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 transition" aria-controls="mobile-menu" aria-expanded="false" aria-label="Toggle navigation">
-            <svg id="hamburger-open" class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg id="hamburger-close" class="h-6 w-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          <a id="log-in-link-mobile-inline" class="bg-gray-900 text-white hover:bg-gray-800 hover:text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-800 navbar-btn" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
         </div>
+        {% endif %}
         <!-- Desktop Navigation -->
         <div class="hidden md:flex md:items-center md:space-x-8">
           {% if request.user.is_authenticated %}
@@ -136,7 +131,7 @@
         </div>
       </div>
     </div>
-    <!-- Mobile Navigation Menu -->
+    <!-- Mobile Navigation Menu (hamburger hidden; keep for future use but inactive) -->
     <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-200 shadow-sm">
       <div class="px-4 py-3 space-y-1">
         {% if request.user.is_authenticated %}
@@ -173,7 +168,7 @@
 
   <!-- Bottom mobile navbar -->
   {% if request.user.is_authenticated %}
-  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10">
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white shadow-2xl shadow-black/10 border-t border-gray-200">
     <div class="grid grid-cols-5 text-center">
       <a hx-boost="true" href="{% url 'protected_home' %}" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors {% if request.resolver_match.url_name == 'protected_home' %}bg-blue-50{% endif %}">
         <iconify-icon icon="lucide:home" class="text-2xl {% if request.resolver_match.url_name == 'protected_home' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
@@ -191,18 +186,12 @@
         <iconify-icon icon="lucide:map-pin" class="text-2xl {% if request.resolver_match.url_name == 'geo' %}text-blue-600{% else %}text-gray-600{% endif %}"></iconify-icon>
         <span class="text-xs mt-1 {% if request.resolver_match.url_name == 'geo' %}text-blue-600 font-semibold{% else %}text-gray-600{% endif %}">Geo</span>
       </a>
-      <button id="mobile-profile-button" class="nav-item flex flex-col items-center justify-center py-2 hover:bg-gray-100/50 transition-colors" type="button" aria-label="User menu">
-        <iconify-icon icon="lucide:user" class="text-2xl text-gray-600"></iconify-icon>
-        <span class="text-xs mt-1 text-gray-600">Menu</span>
-      </button>
-    </div>
-    <!-- Mobile Profile Menu -->
-    <div id="mobile-profile-menu" class="hidden absolute bottom-full right-0 bg-white rounded-t-lg shadow-lg text-gray-800 min-w-max">
-      {% if request.user.is_authenticated %}
-        <a href="{% url 'account_logout' %}" class="block px-4 py-2 hover:bg-red-50 border-b border-gray-100 font-medium text-red-600 hover:text-red-700">{% translate "Sign Out" %}</a>
-      {% else %}
-        <a href="{% url 'account_login' %}" class="block px-4 py-2 hover:bg-gray-100 font-medium text-blue-600">{% translate "Sign In" %}</a>
-      {% endif %}
+      {% with current_view=request.resolver_match.url_name %}
+      <a hx-boost="true" href="{% url 'account_logout' %}" class="nav-item flex flex-col items-center justify-center py-2 transition-colors {% if current_view == 'account_logout' %}bg-red-50{% else %}hover:bg-red-50{% endif %}">
+        <iconify-icon icon="lucide:user" class="text-2xl {% if current_view == 'account_logout' %}text-red-600{% else %}text-gray-600{% endif %}"></iconify-icon>
+        <span class="text-xs mt-1 {% if current_view == 'account_logout' %}text-red-600 font-semibold{% else %}text-gray-600{% endif %}">Salir</span>
+      </a>
+      {% endwith %}
     </div>
   </nav>
   {% endif %}

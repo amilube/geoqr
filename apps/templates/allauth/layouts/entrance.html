@@ -7,13 +7,20 @@
 {% endblock title %}
 {% block main %}
   <div class="max-w-4xl mx-auto px-4 py-10 space-y-6">
-    <header class="bg-white border-b border-gray-200 px-4 py-6 rounded-3xl shadow-sm">
-      <h1 class="text-3xl font-semibold text-gray-900">{% block page_heading %}{% trans "Sign In" %}{% endblock page_heading %}</h1>
-      <p class="text-gray-600 text-base mt-2">Accedé a tu cuenta GeoQR con un diseño limpio y enfocado.</p>
-    </header>
     <main class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6">
       {% block content %}{% endblock content %}
       {% block extra_body %}{% endblock extra_body %}
     </main>
   </div>
+  <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      var form = document.querySelector('form');
+      if (form) {
+        var firstInput = form.querySelector('input, select, textarea');
+        if (firstInput) {
+          firstInput.focus();
+        }
+      }
+    });
+  </script>
 {% endblock main %}
