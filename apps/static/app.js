@@ -372,16 +372,14 @@ function cargarGoogleMapsAPI() {
 
     mapsLibraryPromise = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        // Usar loading=async SIN libraries para usar el nuevo importLibrary
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&loading=async`;
         script.async = true;
         script.defer = true;
         script.onload = async () => {
             try {
-                // Usar el nuevo loader (requiere loading=async sin libraries)
                 await google.maps.importLibrary('maps');
                 await google.maps.importLibrary('marker');
-                console.log('✓ Google Maps API cargada correctamente (importLibrary)');
+                console.log('Google Maps API cargada correctamente (importLibrary)');
                 resolve();
             } catch (error) {
                 console.error('Error al importar librerías de Google Maps', error);
