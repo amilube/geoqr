@@ -222,13 +222,10 @@
     async function handleRequestPermission() {
       mostrarMensaje('⏳ Solicitando permisos...', 'info');
       const granted = await solicitarPermisoNotificaciones();
-      const state = Notification?.permission || 'unknown';
       if (granted) {
         mostrarMensaje('✅ Permisos concedidos', 'success');
-      } else if (state === 'denied') {
-        mostrarMensaje('❌ Permiso denegado. Activa notificaciones para esta app en Ajustes del sistema.', 'error');
       } else {
-        mostrarMensaje(`❌ Permiso no concedido (estado: ${state})`, 'error');
+        mostrarMensaje('❌ Permiso no concedido', 'error');
       }
       await updateUI();
     }
