@@ -50,6 +50,17 @@
       <p class="text-base text-gray-600">Gestiona tus alertas</p>
     </section>
 
+    <!-- Aviso para TWA/App instalada - se muestra dinámicamente -->
+    <div id="twa-info-banner" class="hidden mx-4 mb-4 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+      <div class="flex items-start gap-3">
+        <iconify-icon icon="lucide:smartphone" class="text-2xl text-purple-600 flex-shrink-0 mt-0.5"></iconify-icon>
+        <div>
+          <h3 class="font-bold text-purple-900 mb-1">App instalada detectada</h3>
+          <p class="text-sm text-purple-800">Presiona "Habilitar notificaciones" para que Android te solicite permiso. Debes aceptar para recibir alertas.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Main Content -->
     <div class="px-4 py-6 space-y-6">
       <!-- Status Card -->
@@ -75,6 +86,14 @@
           <div>
             <p class="text-sm font-semibold text-gray-700 mb-2">Navegador:</p>
             <div id="browser-info" class="bg-gray-100 rounded-lg p-3 text-sm font-semibold">
+              🔍 Detectando...
+            </div>
+          </div>
+
+          <!-- Entorno de ejecución - visible solo en TWA/PWA -->
+          <div id="environment-info-container" class="hidden">
+            <p class="text-sm font-semibold text-gray-700 mb-2">Entorno:</p>
+            <div id="environment-info" class="bg-gray-100 rounded-lg p-3 text-sm font-semibold">
               🔍 Detectando...
             </div>
           </div>
@@ -284,9 +303,47 @@
         mostrarMensaje(`❌ Error: ${error.message}`, 'error');
       }
     }
+
+    // Mostrar información del entorno PWA/TWA
+    function showEnvironmentInfo() {
+      const banner = document.getElementById('twa-info-banner');
+      const envContainer = document.getElementById('environment-info-container');
+      const envInfo = document.getElementById('environment-info');
+      
+      if (typeof detectPWAEnvironment === 'function') {
+        const env = detectPWAEnvironment();
+        
+        // Mostrar banner si es TWA o PWA instalada
+        if (banner && (env.isTWA || env.isInstalled)) {
+          banner.classList.remove('hidden');
+        }
+        
+        // Mostrar información del entorno
+        if (envContainer && envInfo && (env.isTWA || env.isInstalled)) {
+          envContainer.classList.remove('hidden');
+          
+          let envText = '';
+          let envClass = 'bg-gray-100 rounded-lg p-3 text-sm font-semibold';
+          
+          if (env.isTWA) {
+            envText = '📱 TWA (App desde Google Play)';
+            envClass = 'bg-purple-100 text-purple-900 rounded-lg p-3 text-sm font-semibold';
+          } else if (env.isInstalled) {
+            envText = '📱 PWA Instalada (' + env.displayMode + ')';
+            envClass = 'bg-blue-100 text-blue-900 rounded-lg p-3 text-sm font-semibold';
+          }
+          
+          envInfo.textContent = envText;
+          envInfo.className = envClass;
+        }
+      }
+    }
     
     // Inicializar al cargar la página
     document.addEventListener('DOMContentLoaded', async () => {
+      // Mostrar información del entorno primero
+      showEnvironmentInfo();
+      
       await updateUI();
       
       // Escuchar cambios de permisos

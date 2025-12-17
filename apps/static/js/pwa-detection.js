@@ -3,11 +3,20 @@
  * Detecta si la app está corriendo como PWA instalada vs navegador
  */
 
+// Cache global para el estado del entorno (evita recalcular)
+let _cachedPWAEnvironment = null;
+let _twaDetectionPromise = null;
+
 /**
- * Detectar si la app está instalada (PWA o TWA)
+ * Detectar si la app está instalada (PWA o TWA) - versión síncrona
  * @returns {Object} Información sobre el entorno de ejecución
  */
 function detectPWAEnvironment() {
+    // Usar cache si ya se calculó
+    if (_cachedPWAEnvironment) {
+        return _cachedPWAEnvironment;
+    }
+
     const detection = {
         isInstalled: false,
         isPWA: false,
@@ -15,7 +24,9 @@ function detectPWAEnvironment() {
         isBrowser: true,
         displayMode: 'browser',
         platform: 'unknown',
-        userAgent: navigator.userAgent
+        userAgent: navigator.userAgent,
+        // Nuevo: indica si los permisos requieren gesto de usuario
+        requiresUserGesture: false
     };
 
     // 1. Verificar display-mode mediante media query
@@ -48,6 +59,8 @@ function detectPWAEnvironment() {
         detection.isBrowser = false;
         detection.platform = 'ios';
         detection.displayMode = 'standalone';
+        // iOS PWA también requiere gesto para ciertos permisos
+        detection.requiresUserGesture = true;
     }
 
     // 3. Detectar TWA (Trusted Web Activity) - Android
@@ -59,34 +72,28 @@ function detectPWAEnvironment() {
         detection.isBrowser = false;
         detection.platform = 'android-twa';
         detection.displayMode = 'standalone';
+        detection.requiresUserGesture = true;
     }
 
-    // 4. Verificar si viene de related_applications (package instalado)
-    // Cuando la app está instalada desde Google Play, puede tener este comportamiento
-    if (navigator.getInstalledRelatedApps) {
-        navigator.getInstalledRelatedApps().then(relatedApps => {
-            if (relatedApps.length > 0) {
-                detection.isTWA = true;
-                detection.isInstalled = true;
-                detection.platform = 'android-twa';
-                console.log('📱 App instalada detectada:', relatedApps);
-            }
-        }).catch(err => {
-            console.log('No se pudo verificar apps relacionadas:', err);
-        });
+    // 4. Heurística para Android en standalone sin chrome object
+    // Cuando la app está instalada como TWA, window.chrome no existe
+    const ua = navigator.userAgent.toLowerCase();
+    const isAndroid = ua.includes('android');
+
+    if (isAndroid && detection.displayMode === 'standalone') {
+        // En Android, si estamos en standalone, probablemente es TWA o PWA instalada
+        // Ambos casos requieren gesto de usuario para solicitar permisos
+        detection.requiresUserGesture = true;
+
+        if (typeof window.chrome === 'undefined') {
+            detection.isTWA = true;
+            detection.platform = 'android-twa';
+        }
     }
 
-    // 5. Heurística adicional: verificar ausencia de elementos del navegador
-    // Si no hay window.chrome y está en standalone, probablemente es TWA
-    if (detection.displayMode === 'standalone' && typeof window.chrome === 'undefined') {
-        detection.isTWA = true;
-        detection.platform = 'android-twa';
-    }
-
-    // 6. Detectar plataforma
+    // 5. Detectar plataforma si aún es desconocida
     if (detection.platform === 'unknown') {
-        const ua = navigator.userAgent.toLowerCase();
-        if (ua.includes('android')) {
+        if (isAndroid) {
             detection.platform = 'android';
         } else if (ua.includes('iphone') || ua.includes('ipad')) {
             detection.platform = 'ios';
@@ -99,7 +106,70 @@ function detectPWAEnvironment() {
         }
     }
 
+    // Cachear resultado
+    _cachedPWAEnvironment = detection;
+
     return detection;
+}
+
+/**
+ * Detectar TWA de forma asíncrona usando getInstalledRelatedApps
+ * @returns {Promise<boolean>} true si es TWA
+ */
+async function detectTWAAsync() {
+    if (_twaDetectionPromise) {
+        return _twaDetectionPromise;
+    }
+
+    _twaDetectionPromise = (async () => {
+        const env = detectPWAEnvironment();
+
+        // Si ya sabemos que es TWA, retornar true
+        if (env.isTWA) {
+            return true;
+        }
+
+        // Verificar usando getInstalledRelatedApps (API asíncrona)
+        if (navigator.getInstalledRelatedApps) {
+            try {
+                const relatedApps = await navigator.getInstalledRelatedApps();
+                if (relatedApps.length > 0) {
+                    console.log('📱 App instalada detectada via getInstalledRelatedApps:', relatedApps);
+                    // Actualizar el cache
+                    if (_cachedPWAEnvironment) {
+                        _cachedPWAEnvironment.isTWA = true;
+                        _cachedPWAEnvironment.isInstalled = true;
+                        _cachedPWAEnvironment.platform = 'android-twa';
+                        _cachedPWAEnvironment.requiresUserGesture = true;
+                    }
+                    return true;
+                }
+            } catch (err) {
+                console.log('No se pudo verificar apps relacionadas:', err);
+            }
+        }
+
+        return env.isTWA;
+    })();
+
+    return _twaDetectionPromise;
+}
+
+/**
+ * Verificar si el contexto actual requiere gesto de usuario para solicitar permisos
+ * @returns {boolean}
+ */
+function requiresUserGestureForPermissions() {
+    const env = detectPWAEnvironment();
+    return env.requiresUserGesture || env.isTWA || env.isInstalled;
+}
+
+/**
+ * Invalidar cache del entorno (útil para testing)
+ */
+function invalidatePWAEnvironmentCache() {
+    _cachedPWAEnvironment = null;
+    _twaDetectionPromise = null;
 }
 
 /**
@@ -198,3 +268,6 @@ if (document.readyState === 'loading') {
 // Exponer funciones globalmente
 window.detectPWAEnvironment = detectPWAEnvironment;
 window.getPWAEnvironmentDescription = getPWAEnvironmentDescription;
+window.detectTWAAsync = detectTWAAsync;
+window.requiresUserGestureForPermissions = requiresUserGestureForPermissions;
+window.invalidatePWAEnvironmentCache = invalidatePWAEnvironmentCache;

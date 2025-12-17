@@ -392,6 +392,7 @@ function cargarGoogleMapsAPI() {
 
 /**
  * Solicitar ubicación del usuario
+ * En contextos TWA/PWA instalada, los permisos requieren interacción del usuario
  */
 function solicitarUbicacion() {
     if (!navigator.geolocation) {
@@ -404,14 +405,52 @@ function solicitarUbicacion() {
         return;
     }
 
+    // Detectar si estamos en contexto que requiere gesto de usuario
+    const needsUserGesture = typeof requiresUserGestureForPermissions === 'function'
+        ? requiresUserGestureForPermissions()
+        : false;
+
+    if (needsUserGesture && DEBUG) {
+        console.log('📱 Solicitando ubicación en contexto TWA/PWA - permisos requerirán confirmación del sistema');
+    }
+
     mostrarMensaje('Solicitando tu ubicación...', 'info');
 
+    // Verificar si ya tenemos permisos de geolocalización
+    if ('permissions' in navigator) {
+        navigator.permissions.query({ name: 'geolocation' }).then(permissionStatus => {
+            if (DEBUG) {
+                console.log('📍 Estado de permisos de geolocalización:', permissionStatus.state);
+            }
+
+            if (permissionStatus.state === 'denied') {
+                mostrarMensaje('❌ Permiso de ubicación denegado\nHabilítalo en la configuración del sistema', 'error');
+                return;
+            }
+
+            // Proceder a solicitar la ubicación
+            obtenerPosicionActual();
+        }).catch(() => {
+            // Si no podemos consultar permisos, intentar obtener ubicación directamente
+            obtenerPosicionActual();
+        });
+    } else {
+        // Navegador no soporta la API de permisos, intentar directamente
+        obtenerPosicionActual();
+    }
+}
+
+/**
+ * Obtener la posición actual usando la API de geolocalización
+ * Función interna usada por solicitarUbicacion()
+ */
+function obtenerPosicionActual() {
     navigator.geolocation.getCurrentPosition(
         ubicacionExitosa,
         ubicacionError,
         {
             enableHighAccuracy: true,
-            timeout: 10000,
+            timeout: 15000, // Aumentado para dar más tiempo en contextos móviles
             maximumAge: 0
         }
     );
@@ -454,9 +493,17 @@ function ubicacionExitosa(position) {
 function ubicacionError(error) {
     let mensaje = '';
 
+    // Detectar si estamos en contexto TWA/PWA
+    const env = typeof detectPWAEnvironment === 'function' ? detectPWAEnvironment() : null;
+    const isTWAorPWA = env && (env.isTWA || env.isInstalled);
+
     switch (error.code) {
         case error.PERMISSION_DENIED:
-            mensaje = '❌ Permiso denegado\nHabilita el acceso en configuración';
+            if (isTWAorPWA) {
+                mensaje = '❌ Permiso denegado\nVe a Configuración > Aplicaciones > GeoQR > Permisos > Ubicación';
+            } else {
+                mensaje = '❌ Permiso denegado\nHabilita el acceso en configuración del navegador';
+            }
             break;
         case error.POSITION_UNAVAILABLE:
             {
@@ -469,13 +516,17 @@ function ubicacionError(error) {
             }
             break;
         case error.TIMEOUT:
-            mensaje = '❌ Tiempo agotado';
+            mensaje = '❌ Tiempo agotado\nAsegúrate de tener GPS activado y buena señal';
             break;
         default:
             mensaje = '❌ Error desconocido';
     }
 
     mostrarMensaje(mensaje, 'error');
+
+    if (DEBUG) {
+        console.error('Error de geolocalización:', error.code, error.message);
+    }
 }
 
 /**
@@ -888,10 +939,40 @@ async function inicializarNotificaciones() {
 
     addNotificationLog('🚀 Iniciando sistema de notificaciones locales...', 'info');
 
-    // Solicitar permisos de notificación con reintento en interacción del usuario (algunas
-    // plataformas móviles requieren gesto explícito, ej. TWA instalada desde Play Store).
-    const granted = await solicitarPermisoNotificaciones();
+    // Detectar si estamos en un contexto que requiere gesto de usuario (TWA, PWA instalada)
+    const needsUserGesture = typeof requiresUserGestureForPermissions === 'function'
+        ? requiresUserGestureForPermissions()
+        : false;
 
+    // También hacer detección asíncrona de TWA para mayor precisión
+    if (typeof detectTWAAsync === 'function') {
+        detectTWAAsync().then(isTWA => {
+            if (isTWA && !notificationPromptRegistered) {
+                addNotificationLog('📱 TWA detectada - los permisos requieren interacción del usuario', 'info');
+            }
+        });
+    }
+
+    let granted = false;
+    const currentPermission = Notification.permission;
+
+    // Si ya tenemos permisos, no necesitamos hacer nada especial
+    if (currentPermission === 'granted') {
+        granted = true;
+        notificationPermissionGranted = true;
+        addNotificationLog('✅ Permisos ya concedidos previamente', 'success');
+    } else if (currentPermission === 'denied') {
+        addNotificationLog('🚫 Permisos denegados previamente - el usuario debe habilitarlos en configuración', 'warning');
+    } else if (needsUserGesture) {
+        // En TWA/PWA instalada, NO solicitar permisos automáticamente
+        // Solo registrar los listeners para cuando el usuario interactúe
+        addNotificationLog('📱 App instalada detectada - esperando gesto del usuario para solicitar permisos', 'info');
+    } else {
+        // En navegador normal, intentar solicitar permisos
+        granted = await solicitarPermisoNotificaciones();
+    }
+
+    // Siempre registrar listeners para el primer gesto si los permisos están pendientes
     if (!granted && !notificationPromptRegistered && Notification.permission === 'default') {
         notificationPromptRegistered = true;
 
@@ -904,8 +985,14 @@ async function inicializarNotificaciones() {
             document.removeEventListener('wheel', promptOnceOnInteraction, true);
             document.removeEventListener('scroll', promptOnceOnInteraction, true);
             document.removeEventListener('keydown', promptOnceOnInteraction, true);
+
+            addNotificationLog('👆 Gesto de usuario detectado - solicitando permisos...', 'info');
+
             try {
-                await solicitarPermisoNotificaciones();
+                const result = await solicitarPermisoNotificaciones();
+                if (result) {
+                    addNotificationLog('✅ Permisos concedidos tras interacción', 'success');
+                }
             } catch (error) {
                 console.debug('Permiso de notificaciones no concedido tras interacción:', error);
             }
@@ -920,12 +1007,16 @@ async function inicializarNotificaciones() {
         document.addEventListener('wheel', promptOnceOnInteraction, true);
         document.addEventListener('scroll', promptOnceOnInteraction, true);
         document.addEventListener('keydown', promptOnceOnInteraction, true);
+
+        if (needsUserGesture) {
+            addNotificationLog('ℹ️ Toca cualquier parte de la pantalla para habilitar notificaciones', 'info');
+        }
     }
 
     if (granted) {
         addNotificationLog('✅ Notificaciones locales habilitadas', 'success');
-    } else {
-        addNotificationLog('⚠️ Notificaciones locales no disponibles', 'warning');
+    } else if (Notification.permission !== 'denied') {
+        addNotificationLog('⏳ Esperando que el usuario habilite notificaciones', 'warning');
     }
 
     // Marcar que la página ha sido visitada
