@@ -17,9 +17,11 @@
         content="Amilcar Benitez Pietroboni en Dumanity" />
   <link rel="icon" href="{% static 'icons/icon.svg' %}" />
   <!-- TailwindCSS CDN -->
-
   <script src="https://cdn.tailwindcss.com"></script>
 
+  <!-- HTMX -->
+  <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js" integrity="sha384-/TgkGk7p307TH7EXJDuUlgG3Ce1UVolAOFopFekQkkXihi5u/6OCvVKyz1W+idaz" crossorigin="anonymous"></script>
+  
   <!-- Iconify for Lucide Icons -->
   <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
 
@@ -83,7 +85,9 @@
   <script src="{% static 'app.js' %}"></script>
   {% endblock javascript %}
 </head>
-<body class="{% block bodyclass %}{% endblock bodyclass %} bg-white text-gray-900">
+<body class="{% block bodyclass %}{% endblock bodyclass %} bg-white text-gray-900"
+hx-boost="true"
+hx-swap="outerHTML transition:true">
   <!-- Navbar superior -->
   <nav class="navbar" style="@view-transition: auto;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
