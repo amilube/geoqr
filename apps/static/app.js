@@ -186,7 +186,11 @@ function mostrarResultado(content) {
     // Mostrar contenido en el resultado
     const resultElement = document.getElementById('qr-result');
     if (resultElement) {
-        resultElement.textContent = content;
+        // Mostrar mensaje simulado en lugar del contenido real para ocultar el valor detectado
+        resultElement.textContent = 'QR leído! (simulación)';
+
+        // Código original (conservado comentado) — mostraba el contenido real detectado:
+        // resultElement.textContent = content;
     }
 
     // Cambiar visibilidad
@@ -194,15 +198,19 @@ function mostrarResultado(content) {
     if (scanButtonCard) scanButtonCard.classList.add('hidden');
     if (scannerContainer) scannerContainer.classList.add('hidden');
 
-    // Mostrar/ocultar botón de abrir enlace
+    // Mantener el botón de "Abrir enlace" oculto mientras mostramos la simulación.
+    // Conservamos el código funcional original comentado por si se quiere revertir.
     const openBtn = document.getElementById('open-btn');
     if (openBtn) {
-        try {
-            new URL(content);
-            openBtn.classList.remove('hidden');
-        } catch (error) {
-            openBtn.classList.add('hidden');
-        }
+        openBtn.classList.add('hidden');
+
+        // Código original (conservado comentado):
+        // try {
+        //     new URL(content);
+        //     openBtn.classList.remove('hidden');
+        // } catch (error) {
+        //     openBtn.classList.add('hidden');
+        // }
     }
 
     // Scroll al resultado para que se vea bien
