@@ -50,6 +50,9 @@
       <p class="text-base text-gray-600">Gestiona tus alertas</p>
     </section>
 
+    <!-- Mensajes de estado (para mostrar toasts de app.js) -->
+    <div id="status-message" class="hidden mx-4 mb-4 rounded-xl p-4 text-sm font-semibold"></div>
+
     <!-- Aviso para TWA/App instalada - se muestra dinámicamente -->
     <div id="twa-info-banner" class="hidden mx-4 mb-4 bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
       <div class="flex items-start gap-3">
@@ -313,13 +316,14 @@
       if (typeof detectPWAEnvironment === 'function') {
         const env = detectPWAEnvironment();
         
-        // Mostrar banner si es TWA o PWA instalada
-        if (banner && (env.isTWA || env.isInstalled)) {
+        // Mostrar banner si es TWA, PWA instalada o posible TWA
+        const showBanner = env.isTWA || env.isInstalled || env.possibleTWA || env.requiresUserGesture;
+        if (banner && showBanner) {
           banner.classList.remove('hidden');
         }
         
         // Mostrar información del entorno
-        if (envContainer && envInfo && (env.isTWA || env.isInstalled)) {
+        if (envContainer && envInfo && showBanner) {
           envContainer.classList.remove('hidden');
           
           let envText = '';
@@ -328,9 +332,17 @@
           if (env.isTWA) {
             envText = '📱 TWA (App desde Google Play)';
             envClass = 'bg-purple-100 text-purple-900 rounded-lg p-3 text-sm font-semibold';
+          } else if (env.platform === 'android-pwa' || env.possibleTWA) {
+            envText = '📱 App Android (' + env.displayMode + ')';
+            envClass = 'bg-purple-100 text-purple-900 rounded-lg p-3 text-sm font-semibold';
           } else if (env.isInstalled) {
             envText = '📱 PWA Instalada (' + env.displayMode + ')';
             envClass = 'bg-blue-100 text-blue-900 rounded-lg p-3 text-sm font-semibold';
+          }
+          
+          // Agregar indicador de que se requiere gesto
+          if (env.requiresUserGesture) {
+            envText += ' - Requiere gesto';
           }
           
           envInfo.textContent = envText;

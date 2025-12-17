@@ -114,7 +114,8 @@
       const banner = document.getElementById('twa-info-banner');
       if (banner && typeof detectPWAEnvironment === 'function') {
         const env = detectPWAEnvironment();
-        if (env.isTWA || env.isInstalled) {
+        // Mostrar banner si es TWA, PWA instalada, posible TWA o requiere gesto de usuario
+        if (env.isTWA || env.isInstalled || env.possibleTWA || env.requiresUserGesture) {
           banner.classList.remove('hidden');
         }
       }

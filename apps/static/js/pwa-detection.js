@@ -75,19 +75,32 @@ function detectPWAEnvironment() {
         detection.requiresUserGesture = true;
     }
 
-    // 4. Heurística para Android en standalone sin chrome object
-    // Cuando la app está instalada como TWA, window.chrome no existe
+    // 4. Heurística para Android en standalone
+    // Las PWAs y TWAs en Android requieren gesto de usuario para permisos
     const ua = navigator.userAgent.toLowerCase();
     const isAndroid = ua.includes('android');
 
     if (isAndroid && detection.displayMode === 'standalone') {
-        // En Android, si estamos en standalone, probablemente es TWA o PWA instalada
+        // En Android, si estamos en standalone, es TWA o PWA instalada
         // Ambos casos requieren gesto de usuario para solicitar permisos
         detection.requiresUserGesture = true;
 
-        if (typeof window.chrome === 'undefined') {
+        // Detectar TWA: puede o no tener window.chrome dependiendo de la versión de Chrome
+        // Usamos múltiples heurísticas para detectar TWA
+        const isTWAByChrome = typeof window.chrome === 'undefined';
+        const isTWAByReferrer = document.referrer.includes('android-app://');
+        const isTWAByPackage = sessionStorage.getItem('__pwa_twa_detected') === 'true';
+
+        // Si cualquier heurística indica TWA, marcarlo
+        if (isTWAByChrome || isTWAByReferrer || isTWAByPackage) {
             detection.isTWA = true;
             detection.platform = 'android-twa';
+        } else {
+            // En Android standalone sin indicadores de TWA, aún así tratar como posible TWA
+            // porque las heurísticas pueden fallar en algunas versiones de Chrome
+            detection.platform = 'android-pwa';
+            // Marcar como TWA potencial para manejar permisos correctamente
+            detection.possibleTWA = true;
         }
     }
 
@@ -161,7 +174,7 @@ async function detectTWAAsync() {
  */
 function requiresUserGestureForPermissions() {
     const env = detectPWAEnvironment();
-    return env.requiresUserGesture || env.isTWA || env.isInstalled;
+    return env.requiresUserGesture || env.isTWA || env.isInstalled || env.possibleTWA;
 }
 
 /**
@@ -181,6 +194,8 @@ function getPWAEnvironmentDescription() {
 
     if (env.isTWA) {
         return '📱 App Instalada (TWA desde Google Play)';
+    } else if (env.platform === 'android-pwa' || env.possibleTWA) {
+        return '📱 App Android (' + env.displayMode + ')';
     } else if (env.isPWA && env.platform === 'ios') {
         return '📱 PWA Instalada (iOS)';
     } else if (env.isPWA) {
