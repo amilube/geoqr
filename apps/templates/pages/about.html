@@ -2,12 +2,15 @@
 
 {% block content %}
   <style>
-    button, a { min-height: 48px; font-size: clamp(16px, 5vw, 22px); }
-    .text-3xl { font-size: clamp(26px, 6vw, 36px); }
-    .text-lg { font-size: clamp(16px, 4vw, 20px); line-height: 1.6; }
-    button:focus-visible, a:focus-visible { outline: 3px solid #4f46e5; outline-offset: 2px; }
+    /* Accessibility improvements - scoped to main content */
+    #main-content button, 
+    #main-content a { min-height: 48px; font-size: clamp(16px, 5vw, 22px); }
+    #main-content .text-3xl { font-size: clamp(26px, 6vw, 36px); }
+    #main-content .text-lg { font-size: clamp(16px, 4vw, 20px); line-height: 1.6; }
+    #main-content button:focus-visible, 
+    #main-content a:focus-visible { outline: 3px solid #4f46e5; outline-offset: 2px; }
     @media (prefers-reduced-motion: reduce) {
-      * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      #main-content * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
     }
   </style>
 

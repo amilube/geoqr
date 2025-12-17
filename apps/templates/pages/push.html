@@ -3,37 +3,39 @@
 
 {% block content %}
   <style>
-    /* Accessibility improvements */
-    button {
+    /* Accessibility improvements - scoped to main content */
+    #main-content button {
       min-height: 48px; /* WCAG 2.5 minimum touch target size */
       font-size: clamp(16px, 5vw, 24px);
     }
     
-    .text-3xl, .text-4xl, .text-5xl {
+    #main-content .text-3xl, 
+    #main-content .text-4xl, 
+    #main-content .text-5xl {
       font-size: clamp(24px, 6vw, 48px);
       line-height: 1.2;
     }
     
-    .text-lg {
+    #main-content .text-lg {
       font-size: clamp(16px, 4vw, 20px);
       line-height: 1.6;
     }
     
-    .text-sm {
+    #main-content .text-sm {
       font-size: clamp(14px, 3vw, 16px);
       line-height: 1.6;
     }
     
     /* Better focus indicators for keyboard navigation */
-    button:focus-visible,
-    a:focus-visible {
+    #main-content button:focus-visible,
+    #main-content a:focus-visible {
       outline: 3px solid #2563eb;
       outline-offset: 2px;
     }
     
     /* Reduce motion for users who prefer it */
     @media (prefers-reduced-motion: reduce) {
-      * {
+      #main-content * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
