@@ -216,8 +216,20 @@ FIXTURE_DIRS = (str(APPS_DIR / "fixtures"),)
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-httponly
 SESSION_COOKIE_HTTPONLY = True
+# https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-age
+# Set session to expire after 2 weeks (suitable for mobile PWA apps)
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 14  # 14 days in seconds
+# https://docs.djangoproject.com/en/dev/ref/settings/#session-cookie-samesite
+# Set to 'Lax' to allow session cookies in PWA context while maintaining security
+SESSION_COOKIE_SAMESITE = "Lax"
+# https://docs.djangoproject.com/en/dev/ref/settings/#session-save-every-request
+# Update session expiry on every request to keep active users logged in
+SESSION_SAVE_EVERY_REQUEST = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-httponly
 CSRF_COOKIE_HTTPONLY = True
+# https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-samesite
+# Set to 'Lax' to allow CSRF cookies in PWA context while maintaining security
+CSRF_COOKIE_SAMESITE = "Lax"
 # https://docs.djangoproject.com/en/dev/ref/settings/#x-frame-options
 X_FRAME_OPTIONS = "DENY"
 
