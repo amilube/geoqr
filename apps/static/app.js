@@ -133,12 +133,12 @@ async function iniciarEscaneo() {
 function onScanSuccess(decodedText) {
     if (scanningActive) {
         detectedURL = decodedText;
+        // Vibrar inmediatamente para confirmación háptica (200ms)
+        if (navigator.vibrate) {
+            try { navigator.vibrate(200); } catch (e) { /* ignore */ }
+        }
         detenerEscaneo();
         mostrarResultado(detectedURL);
-        // Vibrar el dispositivo si está soportado
-        if (navigator.vibrate) {
-            navigator.vibrate(200); // vibra 200ms
-        }
     }
 }
 
