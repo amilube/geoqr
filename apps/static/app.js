@@ -133,9 +133,9 @@ async function iniciarEscaneo() {
 function onScanSuccess(decodedText) {
     if (scanningActive) {
         detectedURL = decodedText;
-        // Vibrar inmediatamente para confirmación háptica (200ms)
+        // Vibrar inmediatamente para confirmación háptica (doble pulso): [50ms, pausa 30ms, 50ms]
         if (navigator.vibrate) {
-            try { navigator.vibrate(200); } catch (e) { /* ignore */ }
+            try { navigator.vibrate([50, 30, 50]); } catch (e) { /* ignore */ }
         }
         detenerEscaneo();
         mostrarResultado(detectedURL);
