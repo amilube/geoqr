@@ -8,6 +8,7 @@ Este script verifica que:
 3. Los archivos de entorno están configurados
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -143,15 +144,21 @@ def main():
     
     results = []
     
-    # Cambiar al directorio flet_app
-    flet_app_dir = Path(__file__).parent
-    import os
-    os.chdir(flet_app_dir)
+    # Determinar el directorio flet_app (donde está este script)
+    script_dir = Path(__file__).parent
     
-    results.append(("Permisos Android", validate_permissions()))
-    results.append(("Configuración WebView", validate_settings()))
-    results.append(("Archivos de entorno", validate_env_files()))
-    results.append(("Componente WebView", validate_webview()))
+    # Guardar el directorio actual y cambiar temporalmente
+    original_dir = Path.cwd()
+    try:
+        os.chdir(script_dir)
+        
+        results.append(("Permisos Android", validate_permissions()))
+        results.append(("Configuración WebView", validate_settings()))
+        results.append(("Archivos de entorno", validate_env_files()))
+        results.append(("Componente WebView", validate_webview()))
+    finally:
+        # Restaurar el directorio original
+        os.chdir(original_dir)
     
     # Resumen
     print("\n" + "=" * 70)
