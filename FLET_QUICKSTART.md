@@ -1,180 +1,164 @@
-# GeoQR - Flet Android App Quick Start
+# GeoQR - Flet Android App - Inicio Rápido
 
-Este es un proyecto Django con un frontend Android basado en Flet como proyecto anexo.
+**Para una sola persona manejando múltiples proyectos: flujo ultra-simplificado.**
 
-## Estructura del Proyecto
+## 🚀 Inicio Rápido (3 comandos)
+
+```bash
+# 1. Iniciar desarrollo
+./flet.sh dev
+
+# 2. Construir APK para probar en dispositivo
+./flet.sh build
+
+# 3. Cuando termines
+./flet.sh stop
+```
+
+¡Eso es todo! 🎉
+
+---
+
+## 📋 Comandos Disponibles
+
+### Desarrollo
+```bash
+./flet.sh dev          # Inicia Django + Flet (puertos 8000 y 8550)
+./flet.sh stop         # Detiene todo
+./flet.sh logs         # Ver logs en tiempo real
+```
+
+### Construcción
+```bash
+./flet.sh build        # APK de desarrollo (default: v0.1.0)
+./flet.sh build 0.2.0  # APK con versión específica
+```
+
+### Producción (cuando estés listo)
+```bash
+# Configura keystore una vez
+export KEY_STORE_PASSWORD='tu-password'
+export KEY_ALIAS='geoqr'
+export KEY_PASSWORD='tu-password'
+
+# Construye AAB para Google Play
+./flet.sh release 1.0.0
+```
+
+---
+
+## 🔧 Alternativa: Usando `just`
+
+Si prefieres `just` (ya configurado en el proyecto):
+
+```bash
+just all              # Inicia Django + Flet
+just flet-build       # Construye APK
+just flet-release     # Construye AAB para producción
+just down             # Detiene servicios
+```
+
+---
+
+## 📁 Estructura Mínima
 
 ```
 geoqr/
-├── apps/                       # Aplicaciones Django
-│   ├── users/
-│   ├── pwa/
-│   └── ...
-├── flet_app/                   # Frontend Android Flet (proyecto anexo)
-│   ├── config/
-│   ├── services/
-│   ├── views/
-│   └── main.py
-├── compose/                    # Configuraciones Docker
-│   ├── local/
-│   │   ├── django/
-│   │   └── flet/
-│   └── production/
-│       ├── django/
-│       └── flet/
-├── docker-compose.local.yml           # Docker Compose para Django
-├── docker-compose.flet.local.yml      # Docker Compose para Flet (desarrollo)
-└── docker-compose.flet.production.yml # Docker Compose para Flet (producción)
+├── flet_app/           # Código de la app Android
+├── flet.sh            # ← Script simplificado (úsalo!)
+├── justfile           # ← Alternativa con just
+└── .envs/
+    └── .local/.flet   # Configuración (ya está lista)
 ```
 
-## Inicio Rápido
+---
 
-### 1. Iniciar Ambiente de Desarrollo Django
-
-```bash
-docker compose -f docker-compose.local.yml up
-```
-
-Acceso: http://localhost:8000
-
-### 2. Iniciar Ambiente de Desarrollo Flet
-
-```bash
-# Opción A: Solo Flet (requiere Django corriendo)
-docker compose -f docker-compose.flet.local.yml up
-
-# Opción B: Django + Flet juntos
-docker compose -f docker-compose.local.yml -f docker-compose.flet.local.yml up
-```
-
-Acceso: http://localhost:8550
-
-### 3. Construir APK para Android (Desarrollo)
-
-```bash
-export BUILD_NUMBER=1
-export BUILD_VERSION=0.1.0
-docker compose -f docker-compose.flet.local.yml --profile build run --rm flet-build
-```
-
-APK disponible en: `build/flet/apk/app-release.apk`
-
-### 4. Construir AAB para Google Play (Producción)
-
-```bash
-# Configurar variables de entorno
-export BUILD_NUMBER=1
-export BUILD_VERSION=1.0.0
-export KEYSTORE_PATH=./keystore.jks
-export KEY_STORE_PASSWORD="tu-password"
-export KEY_ALIAS="geoqr"
-export KEY_PASSWORD="tu-password"
-
-# Construir
-docker compose -f docker-compose.flet.production.yml --profile build-release run --rm flet-build-release
-```
-
-AAB disponible en: `build/flet/production/app-release.aab`
-
-## Configuración
-
-### Variables de Ambiente - Desarrollo
-
-Archivo: `.envs/.local/.flet`
-
-```bash
-FLET_API_BASE_URL=http://django:8000
-FLET_DEBUG=true
-FLET_VERIFY_SSL=false
-```
-
-### Variables de Ambiente - Producción
-
-Archivo: `.envs/.production/.flet` (crear desde `.envs/.production/.flet.example`)
-
-```bash
-FLET_API_BASE_URL=https://tu-dominio-produccion.com
-FLET_DEBUG=false
-FLET_VERIFY_SSL=true
-```
-
-## Comandos Útiles
+## ⚙️ Configuración (solo primera vez)
 
 ### Desarrollo
+Ya está configurado en `.envs/.local/.flet` ✓
+
+### Producción (cuando sea necesario)
+```bash
+cp .envs/.production/.flet.example .envs/.production/.flet
+# Edita y cambia la URL por tu dominio de producción
+```
+
+---
+
+## 🔑 Generar Keystore (solo primera vez para producción)
 
 ```bash
-# Ver logs de Flet
-docker compose -f docker-compose.flet.local.yml logs -f flet
+keytool -genkey -v -keystore keystore.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -alias geoqr
 
-# Detener servicios
-docker compose -f docker-compose.flet.local.yml down
-
-# Reconstruir imágenes
-docker compose -f docker-compose.flet.local.yml build --no-cache
+# Guarda las contraseñas en un lugar seguro
 ```
 
-### Testing y Linting
+---
 
+## 🎯 Flujo de Trabajo Típico
+
+### Día a día (Desarrollo)
 ```bash
-# Linting
-docker compose -f docker-compose.flet.local.yml run --rm flet ruff check flet_app/
-
-# Type checking
-docker compose -f docker-compose.flet.local.yml run --rm flet mypy flet_app/
-
-# Tests
-docker compose -f docker-compose.flet.local.yml run --rm flet pytest
+./flet.sh dev          # Iniciar
+# ... hacer cambios en flet_app/ ...
+# Los cambios se recargan automáticamente en http://localhost:8550
+./flet.sh stop         # Cuando termines
 ```
 
-## Documentación Completa
-
-- **[README Principal](README.md)** - Información general del proyecto
-- **[Flet App README](flet_app/README.md)** - Documentación detallada de la app Flet
-- **[Guía de Despliegue](FLET_DEPLOYMENT_GUIDE.md)** - Flujo completo de desarrollo y despliegue
-- **[Guía de Seguridad](FLET_SECURITY.md)** - Mejores prácticas de seguridad
-
-## Arquitectura
-
-El proyecto sigue una arquitectura de dos capas:
-
-1. **Backend Django**: API REST que maneja toda la lógica de negocio
-2. **Frontend Flet**: Aplicación Android que envuelve la web app en un WebView nativo
-
-```
-┌─────────────────────┐
-│   App Android       │
-│   (Flet)            │
-│   ┌─────────────┐   │
-│   │  WebView    │   │
-│   │  Django App │   │
-│   └─────────────┘   │
-└──────────┬──────────┘
-           │ HTTPS
-           ▼
-    ┌──────────────┐
-    │ Django API   │
-    │ (Backend)    │
-    └──────────────┘
+### Probar en dispositivo real
+```bash
+./flet.sh build        # Construir APK
+adb install build/flet/apk/app-release.apk
 ```
 
-## Seguridad
+### Publicar en Google Play
+```bash
+# Configurar keystore (una vez)
+export KEY_STORE_PASSWORD='...'
+export KEY_ALIAS='geoqr'
+export KEY_PASSWORD='...'
 
-**Consideraciones importantes:**
+# Construir
+./flet.sh release 1.0.0
 
-1. **Nunca** commitear `.envs/.production/.flet` (contiene secretos)
-2. **Nunca** commitear keystores (`.jks`, `.keystore`)
-3. **Siempre** usar HTTPS en producción
-4. **Siempre** verificar certificados SSL en producción
-5. Mantener dependencias actualizadas
+# Subir build/flet/production/app-release.aab a Play Console
+```
 
-## Soporte
+---
 
-Para problemas o preguntas:
+## 🆘 Problemas Comunes
 
-1. Revisar la documentación en este repositorio
-2. Buscar issues existentes en GitHub
-3. Crear un nuevo issue con descripción detallada
+**No se conecta al backend**
+→ Asegúrate de que Django esté corriendo: `docker compose logs django`
 
-## Licencia
+**Build falla**
+→ Limpia y reconstruye: `./flet.sh clean && ./flet.sh build`
 
-Not open source - Ver archivo LICENSE para detalles.
+**Pantalla en blanco en la app**
+→ Revisa que la URL en `.envs/.local/.flet` sea correcta
+
+---
+
+## 📚 Documentación Completa
+
+Solo si necesitas más detalles:
+
+- [Guía de Despliegue](FLET_DEPLOYMENT_GUIDE.md) - Proceso completo
+- [Guía de Seguridad](FLET_SECURITY.md) - Mejores prácticas
+- [README de Flet](flet_app/README.md) - Detalles técnicos
+
+---
+
+## 💡 Tips para Gestionar Múltiples Proyectos
+
+1. **Usa el script `flet.sh`** - Un comando para todo
+2. **Deja servicios corriendo** - `./flet.sh dev` en background
+3. **Versiones automáticas** - No te preocupes por BUILD_NUMBER
+4. **Documentación inline** - `./flet.sh help` siempre disponible
+
+---
+
+**Eso es todo.** No necesitas leer más para empezar. El resto es opcional. 🚀

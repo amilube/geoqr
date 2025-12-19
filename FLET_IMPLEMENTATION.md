@@ -380,3 +380,86 @@ A complete, production-ready Flet Android frontend has been implemented as an in
 - Clear workflow documentation
 
 The implementation is ready for development and can be deployed to production after configuring the production environment and creating a keystore for signing releases.
+
+## Simplifications for Single-Person Team (Update)
+
+### Ultra-Simplified Workflow
+
+For a single person managing multiple projects in parallel, the workflow has been drastically simplified:
+
+#### Single Script: `flet.sh`
+
+All common operations consolidated into one script:
+
+```bash
+./flet.sh dev           # Start development
+./flet.sh build         # Build APK
+./flet.sh release       # Build AAB for production
+./flet.sh stop          # Stop services
+./flet.sh logs          # View logs
+./flet.sh clean         # Clean build artifacts
+./flet.sh help          # Show help
+```
+
+#### Integration with `just`
+
+Commands added to existing `justfile`:
+
+```bash
+just all                # Start Django + Flet
+just flet-dev           # Start Flet only
+just flet-build         # Build APK
+just flet-release       # Build AAB
+```
+
+#### Quick Reference Files
+
+1. **FLET_CHEATSHEET.md** - One-page reference
+2. **FLET_QUICKSTART.md** - Simplified guide (Spanish)
+3. **flet.sh** - All-in-one script
+
+### Benefits for Solo Developer
+
+1. **One command to start**: `./flet.sh dev`
+2. **No need to remember docker compose files**: Script handles it
+3. **Colored output**: Clear visual feedback
+4. **Sensible defaults**: No need to specify versions every time
+5. **Inline help**: `./flet.sh help` always available
+6. **Quick reference**: FLET_CHEATSHEET.md for instant lookup
+
+### Typical Day Workflow
+
+```bash
+# Morning: Start everything
+./flet.sh dev
+
+# ... work on code ...
+# Changes reload automatically
+
+# Test on device
+./flet.sh build
+adb install build/flet/apk/app-release.apk
+
+# End of day
+./flet.sh stop
+```
+
+### Production Release (Once configured)
+
+```bash
+# One command to rule them all
+./flet.sh release 1.0.0
+
+# Upload AAB to Play Console
+# Done!
+```
+
+### Zero Configuration Required
+
+- Development environment: Pre-configured in `.envs/.local/.flet`
+- Production: Copy example and edit once
+- No complex Docker commands to remember
+- No build number management needed
+
+This approach minimizes cognitive load when context-switching between multiple projects.
+
