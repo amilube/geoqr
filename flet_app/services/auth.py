@@ -10,7 +10,7 @@ from typing import Any
 
 import flet as ft
 
-from apps.flet_app.config.settings import SECURE_STORAGE
+from flet_app.config.settings import SECURE_STORAGE
 
 
 class AuthService:

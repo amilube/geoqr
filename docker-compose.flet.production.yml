@@ -9,7 +9,7 @@ services:
     image: geoqr_production_flet_build
     container_name: geoqr_production_flet_build_apk
     volumes:
-      - ./apps/flet_app:/app/apps/flet_app:ro
+      - ./flet_app:/app/flet_app:ro
       - ./build/flet/production:/output:z
     env_file:
       - ./.envs/.production/.flet
@@ -29,7 +29,7 @@ services:
     image: geoqr_production_flet_build
     container_name: geoqr_production_flet_build_aab
     volumes:
-      - ./apps/flet_app:/app/apps/flet_app:ro
+      - ./flet_app:/app/flet_app:ro
       - ./build/flet/production:/output:z
       - ${KEYSTORE_PATH:-./keystore.jks}:/keystore.jks:ro
     env_file:

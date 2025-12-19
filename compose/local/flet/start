@@ -7,7 +7,7 @@ set -o nounset
 echo "Starting Flet app in development mode..."
 
 # Change to the flet app directory
-cd /app/apps/flet_app
+cd /app/flet_app
 
 # Run Flet in web mode for development
 # This allows viewing the app in a browser during development

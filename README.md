@@ -7,14 +7,14 @@ App para testear funcionalidades en Android
 
 ## Flet Android App
 
-This project includes a Flet-based Android frontend that wraps the Django web application for native Android deployment.
+This project includes a Flet-based Android frontend that wraps the Django web application for native Android deployment. The `flet_app` is an independent project located at the root of the repository.
 
 ### Quick Start
 
 Start the development environment with both Django and Flet:
 
 ```bash
-docker-compose -f docker-compose.local.yml -f docker-compose.flet.local.yml up
+docker compose -f docker-compose.local.yml -f docker-compose.flet.local.yml up
 ```
 
 Access points:
@@ -23,17 +23,18 @@ Access points:
 
 ### Documentation
 
-- **[Flet App README](apps/flet_app/README.md)** - Detailed Flet app documentation
+- **[Flet App README](flet_app/README.md)** - Detailed Flet app documentation
 - **[Deployment Guide](FLET_DEPLOYMENT_GUIDE.md)** - Complete development and deployment workflow
+- **[Security Guide](FLET_SECURITY.md)** - Security best practices
 
 ### Building for Android
 
 ```bash
 # Development APK
-docker-compose -f docker-compose.flet.local.yml --profile build run --rm flet-build
+docker compose -f docker-compose.flet.local.yml --profile build run --rm flet-build
 
 # Production AAB (for Google Play)
-docker-compose -f docker-compose.flet.production.yml --profile build-release run --rm flet-build-release
+docker compose -f docker-compose.flet.production.yml --profile build-release run --rm flet-build-release
 ```
 
 ## Settings

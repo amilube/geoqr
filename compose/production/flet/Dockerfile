@@ -49,11 +49,11 @@ RUN yes | sdkmanager --licenses && \
 WORKDIR /app
 
 # Install Flet and dependencies
-COPY apps/flet_app/requirements.txt /app/flet_requirements.txt
+COPY flet_app/requirements.txt /app/flet_requirements.txt
 RUN pip install --no-cache-dir -r /app/flet_requirements.txt
 
 # Copy application code
-COPY apps/flet_app /app/apps/flet_app
+COPY flet_app /app/flet_app
 
 # Create build scripts
 COPY compose/production/flet/build_apk /build_apk

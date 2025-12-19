@@ -7,10 +7,10 @@ It wraps the existing Django web application in a Flet webview for Android deplo
 
 import flet as ft
 
-from apps.flet_app.config.settings import API_BASE_URL
-from apps.flet_app.config.settings import APP_TITLE
-from apps.flet_app.config.settings import DEBUG
-from apps.flet_app.views.webview import WebViewPage
+from flet_app.config.settings import API_BASE_URL
+from flet_app.config.settings import APP_TITLE
+from flet_app.config.settings import DEBUG
+from flet_app.views.webview import WebViewPage
 
 
 def main(page: ft.Page) -> None:

@@ -7,7 +7,7 @@ set -o nounset
 echo "Building Flet Android APK..."
 
 # Change to the flet app directory
-cd /app/apps/flet_app
+cd /app/flet_app
 
 # Install Android SDK if not present (for build container)
 if [ ! -d "$ANDROID_HOME" ]; then

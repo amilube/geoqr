@@ -99,11 +99,11 @@ Start both the Django backend and Flet frontend:
 
 ```bash
 # Option A: Start everything together
-docker-compose -f docker-compose.local.yml -f docker-compose.flet.local.yml up
+docker compose -f docker-compose.local.yml -f docker-compose.flet.local.yml up
 
 # Option B: Start Django first, then Flet
-docker-compose -f docker-compose.local.yml up -d
-docker-compose -f docker-compose.flet.local.yml up
+docker compose -f docker-compose.local.yml up -d
+docker compose -f docker-compose.flet.local.yml up
 ```
 
 The services will be available at:
@@ -123,13 +123,13 @@ The development environment supports hot reload:
 
 ```bash
 # Run linting
-docker-compose -f docker-compose.flet.local.yml run --rm flet ruff check apps/flet_app/
+docker compose -f docker-compose.flet.local.yml run --rm flet ruff check flet_app/
 
 # Run type checking
-docker-compose -f docker-compose.flet.local.yml run --rm flet mypy apps/flet_app/
+docker compose -f docker-compose.flet.local.yml run --rm flet mypy flet_app/
 
 # Run tests (when available)
-docker-compose -f docker-compose.flet.local.yml run --rm flet pytest
+docker compose -f docker-compose.flet.local.yml run --rm flet pytest
 ```
 
 ### 5. Building Development APK
@@ -142,7 +142,7 @@ export BUILD_NUMBER=1
 export BUILD_VERSION=0.1.0
 
 # Build APK
-docker-compose -f docker-compose.flet.local.yml --profile build run --rm flet-build
+docker compose -f docker-compose.flet.local.yml --profile build run --rm flet-build
 
 # APK will be available at: build/flet/apk/app-release.apk
 ```
@@ -157,10 +157,10 @@ adb install build/flet/apk/app-release.apk
 
 ```bash
 # Stop all services
-docker-compose -f docker-compose.local.yml -f docker-compose.flet.local.yml down
+docker compose -f docker-compose.local.yml -f docker-compose.flet.local.yml down
 
 # Stop and remove volumes
-docker-compose -f docker-compose.local.yml -f docker-compose.flet.local.yml down -v
+docker compose -f docker-compose.local.yml -f docker-compose.flet.local.yml down -v
 ```
 
 ## Production Build Workflow
@@ -199,7 +199,7 @@ Before building for production:
 For direct distribution or testing:
 
 ```bash
-docker-compose -f docker-compose.flet.production.yml \
+docker compose -f docker-compose.flet.production.yml \
   --profile build-apk \
   run --rm flet-build-apk
 
@@ -211,7 +211,7 @@ docker-compose -f docker-compose.flet.production.yml \
 For Google Play Store distribution:
 
 ```bash
-docker-compose -f docker-compose.flet.production.yml \
+docker compose -f docker-compose.flet.production.yml \
   --profile build-release \
   run --rm flet-build-release
 
@@ -304,7 +304,7 @@ FLET_VERIFY_SSL=false # ❌ Only for local development
 **Solution:**
 ```bash
 # Rebuild the Docker image to ensure SDK is installed
-docker-compose -f docker-compose.flet.production.yml build --no-cache
+docker compose -f docker-compose.flet.production.yml build --no-cache
 ```
 
 #### 2. App Shows Blank Screen
@@ -320,11 +320,11 @@ docker-compose -f docker-compose.flet.production.yml build --no-cache
 curl http://localhost:8000
 
 # Check Flet configuration
-docker-compose -f docker-compose.flet.local.yml run --rm flet \
+docker compose -f docker-compose.flet.local.yml run --rm flet \
   env | grep FLET_API_BASE_URL
 
 # Check container networking
-docker-compose -f docker-compose.flet.local.yml run --rm flet \
+docker compose -f docker-compose.flet.local.yml run --rm flet \
   ping django
 ```
 
@@ -365,7 +365,7 @@ adb logcat | grep -i error
 export BUILD_NUMBER=$((BUILD_NUMBER + 1))
 
 # Rebuild
-docker-compose -f docker-compose.flet.production.yml \
+docker compose -f docker-compose.flet.production.yml \
   --profile build-release run --rm flet-build-release
 ```
 
@@ -378,7 +378,7 @@ Enable detailed logging:
 FLET_DEBUG=true
 
 # View logs
-docker-compose -f docker-compose.flet.local.yml logs -f flet
+docker compose -f docker-compose.flet.local.yml logs -f flet
 ```
 
 ## FAQ
@@ -387,7 +387,7 @@ docker-compose -f docker-compose.flet.local.yml logs -f flet
 
 **A:** Yes! Use the web view during development:
 ```bash
-docker-compose -f docker-compose.flet.local.yml up
+docker compose -f docker-compose.flet.local.yml up
 # Open http://localhost:8550 in your browser
 ```
 

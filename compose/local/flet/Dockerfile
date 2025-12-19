@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Flet and dependencies
-COPY apps/flet_app/requirements.txt /app/flet_requirements.txt
+COPY flet_app/requirements.txt /app/flet_requirements.txt
 RUN pip install --no-cache-dir -r /app/flet_requirements.txt
 
 # Install development tools
@@ -37,7 +37,7 @@ RUN pip install --no-cache-dir \
     mypy
 
 # Copy application code
-COPY apps/flet_app /app/apps/flet_app
+COPY flet_app /app/flet_app
 
 # Create entrypoint script
 COPY compose/local/flet/start /start

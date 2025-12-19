@@ -9,7 +9,7 @@ The Flet app provides a native Android container that embeds the existing Django
 ## Architecture
 
 ```
-apps/flet_app/
+flet_app/
 ├── config/          # Application configuration and settings
 ├── services/        # Business logic and API services (auth, API client, etc.)
 ├── views/           # UI components and screens
@@ -40,7 +40,7 @@ apps/flet_app/
 
 1. **Start the development environment**:
    ```bash
-   docker-compose -f docker-compose.flet.local.yml up
+   docker compose -f docker-compose.flet.local.yml up
    ```
 
 2. **The Flet app will be available at**:
@@ -53,7 +53,7 @@ apps/flet_app/
 
 1. **Install dependencies**:
    ```bash
-   cd apps/flet_app
+   cd flet_app
    pip install -r requirements.txt
    ```
 
@@ -84,12 +84,12 @@ apps/flet_app/
 
 1. **Using Docker Compose**:
    ```bash
-   docker-compose -f docker-compose.flet.local.yml run --rm flet-build
+   docker compose -f docker-compose.flet.local.yml run --rm flet-build
    ```
 
 2. **Manual build** (requires Android SDK):
    ```bash
-   cd apps/flet_app
+   cd flet_app
    flet build apk --project geoqr --build-number 1 --build-version 0.1.0
    ```
 
@@ -99,12 +99,12 @@ apps/flet_app/
 
 1. **Using Docker Compose**:
    ```bash
-   docker-compose -f docker-compose.flet.production.yml run --rm flet-build-release
+   docker compose -f docker-compose.flet.production.yml run --rm flet-build-release
    ```
 
 2. **Manual build with signing**:
    ```bash
-   cd apps/flet_app
+   cd flet_app
    flet build aab \
      --project geoqr \
      --build-number 1 \
@@ -153,7 +153,7 @@ FLET_VERIFY_SSL=false
 
 ### Development Workflow
 
-1. **Make code changes** in `apps/flet_app/`
+1. **Make code changes** in `flet_app/`
 2. **Test locally** using Docker Compose or Flet CLI
 3. **Build development APK** for testing on devices
 4. **Iterate** based on testing feedback
@@ -194,10 +194,10 @@ This application implements security best practices:
 
 ```bash
 # Run all tests
-docker-compose -f docker-compose.flet.local.yml run --rm flet pytest
+docker compose -f docker-compose.flet.local.yml run --rm flet pytest
 
 # Run specific test file
-docker-compose -f docker-compose.flet.local.yml run --rm flet pytest tests/test_auth.py
+docker compose -f docker-compose.flet.local.yml run --rm flet pytest tests/test_auth.py
 ```
 
 ### Manual Testing Checklist

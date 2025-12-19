@@ -279,8 +279,8 @@ apps/media/
 
 ### Flet template
 # Flet build artifacts
-apps/flet_app/build/
-apps/flet_app/.flet/
+flet_app/build/
+flet_app/.flet/
 build/flet/
 
 # Flet production env (contains secrets)

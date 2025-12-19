@@ -7,9 +7,9 @@ web application within the Flet Android app.
 
 import flet as ft
 
-from apps.flet_app.config.settings import DEBUG
-from apps.flet_app.config.settings import WEBVIEW_JAVASCRIPT_ENABLED
-from apps.flet_app.config.settings import WEBVIEW_PREVENT_LINK
+from flet_app.config.settings import DEBUG
+from flet_app.config.settings import WEBVIEW_JAVASCRIPT_ENABLED
+from flet_app.config.settings import WEBVIEW_PREVENT_LINK
 
 
 class WebViewPage(ft.UserControl):

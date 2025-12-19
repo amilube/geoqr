@@ -7,7 +7,7 @@ set -o nounset
 echo "Building Flet Android AAB (App Bundle) for production..."
 
 # Change to the flet app directory
-cd /app/apps/flet_app
+cd /app/flet_app
 
 # Build configuration from environment variables
 BUILD_NUMBER=${BUILD_NUMBER:-1}
