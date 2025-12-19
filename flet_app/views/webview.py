@@ -45,9 +45,10 @@ class WebViewPage(ft.UserControl):
 
         # Create WebView control with native device support
         # Configuración para soportar APIs nativas del dispositivo:
-        # - Geolocalización API
-        # - Camera/MediaDevices API (para escaneo QR)
+        # - Geolocalización API (navigator.geolocation)
+        # - Camera/MediaDevices API (navigator.mediaDevices para escaneo QR)
         # - Notifications API (para push notifications)
+        # - Service Workers (habilitados automáticamente con JavaScript + HTTPS/localhost)
         self.webview = ft.WebView(
             url=self.url,
             expand=True,

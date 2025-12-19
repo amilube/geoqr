@@ -31,7 +31,9 @@ WEBVIEW_PREVENT_LINK = (
     os.getenv("FLET_WEBVIEW_PREVENT_LINK", "False").lower() == "true"
 )
 
-# Soporte para Service Workers (necesario para PWA y notificaciones push)
+# Nota: Service Workers se habilitan automáticamente cuando JavaScript está
+# habilitado y el contenido se sirve desde HTTPS o localhost.
+# Esta variable es para documentación y futuras configuraciones.
 WEBVIEW_ALLOW_SERVICE_WORKERS = (
     os.getenv("FLET_WEBVIEW_ALLOW_SERVICE_WORKERS", "True").lower() == "true"
 )

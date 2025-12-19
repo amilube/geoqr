@@ -121,8 +121,10 @@ def validate_webview():
     content = webview_path.read_text()
     
     checks = [
-        ("javascript_enabled", "JavaScript habilitado en WebView"),
+        ("javascript_enabled=", "JavaScript habilitado en WebView"),
         ("WEBVIEW_JAVASCRIPT_ENABLED", "Usando configuración desde settings"),
+        ("Geolocalización API", "Documentación de soporte para geolocalización"),
+        ("MediaDevices API", "Documentación de soporte para cámara"),
     ]
     
     all_found = True
