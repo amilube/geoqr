@@ -1,19 +1,20 @@
-# Flet Local Development Environment Configuration
-# This file contains environment variables for local development of the Flet Android app
+# Flet Production Environment Configuration - EXAMPLE
+# Copy this file to .flet (without .example) and update with production values
+# DO NOT commit the actual .flet file - it should be in .gitignore
 
 # Application Settings
 FLET_APP_TITLE=GeoQR
-FLET_DEBUG=true
+FLET_DEBUG=false
 
 # Backend API Configuration
-# Point to the local Django container
-FLET_API_BASE_URL=http://django:8000
+# IMPORTANTE: Actualizar con la URL de producción
+FLET_API_BASE_URL=https://your-production-domain.com
 FLET_API_TIMEOUT=30
 
 # Security Settings
 FLET_SECURE_STORAGE=true
-# Disable SSL verification for local development
-FLET_VERIFY_SSL=false
+# IMPORTANTE: Habilitar verificación SSL en producción
+FLET_VERIFY_SSL=true
 
 # WebView Settings - Habilitados para funcionalidades nativas
 # JavaScript necesario para Geolocation API, Camera API, Push Notifications

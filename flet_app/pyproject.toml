@@ -1,0 +1,39 @@
+# Configuración de Flet para la aplicación Android GeoQR
+# Este archivo define los permisos y configuraciones necesarias para el build de Android
+
+[tool.flet]
+# Metadatos de la aplicación
+app_name = "GeoQR"
+description = "App para funcionalidades de geolocalización, escaneo QR y notificaciones push"
+org_name = "amilube"
+
+# Permisos de Android requeridos para las funcionalidades de la webapp
+permissions = [
+    # Cámara - para escaneo de códigos QR
+    "android.permission.CAMERA",
+    
+    # Ubicación - para funcionalidades de geolocalización
+    "android.permission.ACCESS_FINE_LOCATION",
+    "android.permission.ACCESS_COARSE_LOCATION",
+    
+    # Notificaciones - para notificaciones push (Android 13+)
+    "android.permission.POST_NOTIFICATIONS",
+    
+    # Internet - para conectividad con la webapp
+    "android.permission.INTERNET",
+    "android.permission.ACCESS_NETWORK_STATE",
+    "android.permission.ACCESS_WIFI_STATE",
+]
+
+# Features de Android requeridos
+features = [
+    "android.hardware.camera",
+    "android.hardware.camera.autofocus",
+    "android.hardware.location",
+    "android.hardware.location.gps",
+]
+
+# Features opcionales (no requeridos pero útiles si están disponibles)
+optional_features = [
+    "android.hardware.camera.flash",
+]

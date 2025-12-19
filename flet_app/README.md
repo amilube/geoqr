@@ -1,108 +1,137 @@
-# Flet Android Frontend
+# Frontend Android con Flet
 
-This directory contains the Flet-based frontend application for wrapping the GeoQR Django web application into an Android app.
+Este directorio contiene la aplicación frontend basada en Flet para envolver la aplicación web Django GeoQR en una app Android.
 
-## Overview
+## Descripción General
 
-The Flet app provides a native Android container that embeds the existing Django web application in a WebView, allowing seamless deployment to Android devices while maintaining the full functionality of the web application.
+La aplicación Flet proporciona un contenedor nativo de Android que embebe la aplicación web Django existente en un WebView, permitiendo un despliegue sin problemas en dispositivos Android mientras mantiene toda la funcionalidad de la aplicación web, **incluyendo funcionalidades nativas del dispositivo**.
 
-## Architecture
+## Funcionalidades Nativas Soportadas
+
+La aplicación Android (flet_app) expone las siguientes APIs nativas del dispositivo a la webapp:
+
+### 📸 Cámara (Escáner QR)
+- **API Web**: `navigator.mediaDevices.getUserMedia()`
+- **Permiso Android**: `CAMERA`
+- **Uso**: Escaneo de códigos QR usando la librería Html5Qrcode
+- **Prueba**: Ir a `/qr` en la webapp dentro de la app
+
+### 📍 Geolocalización
+- **API Web**: `navigator.geolocation.getCurrentPosition()`
+- **Permisos Android**: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`
+- **Uso**: Obtener ubicación actual del dispositivo
+- **Prueba**: Ir a `/geo` en la webapp dentro de la app
+
+### 🔔 Notificaciones Push
+- **API Web**: Service Worker + Push API + Notifications API
+- **Permiso Android**: `POST_NOTIFICATIONS` (Android 13+)
+- **Uso**: Suscripción y recepción de notificaciones push
+- **Prueba**: Ir a `/push` en la webapp dentro de la app
+
+### 🌐 Conectividad
+- **Permisos Android**: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`
+- **Uso**: Comunicación con el backend Django y funcionamiento de PWA
+
+## Arquitectura
 
 ```
 flet_app/
-├── config/          # Application configuration and settings
-├── services/        # Business logic and API services (auth, API client, etc.)
-├── views/           # UI components and screens
-├── assets/          # Static assets (images, icons, etc.)
-├── main.py          # Application entry point
-├── requirements.txt # Python dependencies
-└── README.md        # This file
+├── config/          # Configuración y ajustes de la aplicación
+├── services/        # Lógica de negocio y servicios API (auth, cliente API, etc.)
+├── views/           # Componentes UI y pantallas
+├── assets/          # Recursos estáticos (imágenes, iconos, etc.)
+├── main.py          # Punto de entrada de la aplicación
+├── pyproject.toml   # Configuración de build de Flet con permisos Android
+├── requirements.txt # Dependencias Python
+└── README.md        # Este archivo
 ```
 
-## Features
+## Características
 
-- **WebView Integration**: Embeds the Django web application in a native WebView
-- **Secure Authentication**: Handles token-based authentication with secure storage
-- **Offline Capability**: Caches resources for offline use (when configured)
-- **Error Handling**: Graceful error handling with user-friendly messages
-- **Security by Design**: Follows security best practices with configurable SSL verification
+- **Integración WebView**: Embebe la aplicación web Django en un WebView nativo
+- **APIs Nativas del Dispositivo**: Soporte completo para cámara, geolocalización y notificaciones push
+- **Compatible con PWA**: Funciona como PWA independiente o dentro de la app Android
+- **Autenticación Segura**: Maneja autenticación basada en tokens con almacenamiento seguro
+- **Capacidad Offline**: Cachea recursos para uso sin conexión (cuando está configurado)
+- **Manejo de Errores**: Manejo elegante de errores con mensajes amigables para el usuario
+- **Seguridad por Diseño**: Sigue mejores prácticas de seguridad con verificación SSL configurable
 
-## Development Setup
+## Configuración de Desarrollo
 
-### Prerequisites
+### Prerequisitos
 
 - Python 3.13+
-- Docker and Docker Compose
-- Android Studio (for building APK/AAB)
-- Flet CLI (optional, for local development without Docker)
+- Docker y Docker Compose
+- Android Studio (para construir APK/AAB)
+- Flet CLI (opcional, para desarrollo local sin Docker)
 
-### Local Development (Docker)
+### Desarrollo Local (Docker)
 
-1. **Start the development environment**:
+1. **Iniciar el entorno de desarrollo**:
    ```bash
    docker compose -f docker-compose.flet.local.yml up
    ```
 
-2. **The Flet app will be available at**:
-   - Desktop mode: Will open automatically in a native window
-   - Web mode: http://localhost:8550
+2. **La app Flet estará disponible en**:
+   - Modo escritorio: Se abrirá automáticamente en una ventana nativa
+   - Modo web: http://localhost:8550
 
-3. **Hot reload**: Changes to Python files will automatically trigger a reload
+3. **Recarga automática**: Los cambios en archivos Python activarán automáticamente una recarga
 
-### Local Development (Without Docker)
+### Desarrollo Local (Sin Docker)
 
-1. **Install dependencies**:
+1. **Instalar dependencias**:
    ```bash
    cd flet_app
    pip install -r requirements.txt
    ```
 
-2. **Set environment variables**:
+2. **Configurar variables de entorno**:
    ```bash
    export FLET_API_BASE_URL=http://localhost:8000
    export FLET_DEBUG=true
    ```
 
-3. **Run the app**:
+3. **Ejecutar la app**:
    ```bash
-   # Desktop mode (default)
+   # Modo escritorio (por defecto)
    flet run main.py
 
-   # Web mode
+   # Modo web
    flet run --web --port 8550 main.py
 
-   # iOS mode (requires macOS)
+   # Modo iOS (requiere macOS)
    flet run --ios main.py
 
-   # Android mode (requires Android SDK)
+   # Modo Android (requiere Android SDK)
    flet run --android main.py
    ```
 
-## Building for Android
+## Construcción para Android
 
-### Development Build
+### Build de Desarrollo
 
-1. **Using Docker Compose**:
+1. **Usando Docker Compose**:
    ```bash
    docker compose -f docker-compose.flet.local.yml run --rm flet-build
    ```
 
-2. **Manual build** (requires Android SDK):
+2. **Build manual** (requiere Android SDK):
    ```bash
    cd flet_app
    flet build apk --project geoqr --build-number 1 --build-version 0.1.0
    ```
 
-   The APK will be available at: `build/apk/app-release.apk`
+   El APK estará disponible en: `build/apk/app-release.apk`
 
-### Production Build
+### Build de Producción
 
-1. **Using Docker Compose**:
+1. **Usando Docker Compose**:
    ```bash
    docker compose -f docker-compose.flet.production.yml run --rm flet-build-release
    ```
 
-2. **Manual build with signing**:
+2. **Build manual con firma**:
    ```bash
    cd flet_app
    flet build aab \
@@ -115,165 +144,254 @@ flet_app/
      --key-password "$KEY_PASSWORD"
    ```
 
-   The AAB will be available at: `build/aab/app-release.aab`
+   El AAB estará disponible en: `build/aab/app-release.aab`
 
-## Configuration
+## Pruebas de Funcionalidades Nativas
 
-All configuration is managed through environment variables for security and flexibility:
+### Prerequisitos para Testing
 
-### Required Environment Variables
+1. **Dispositivo Android físico o emulador** con:
+   - Android 8.0+ (API 26+)
+   - Android 13+ (API 33+) para notificaciones push
+   - Cámara funcional (para escáner QR)
+   - GPS habilitado (para geolocalización)
 
-- `FLET_API_BASE_URL`: URL of the Django backend API (default: `http://django:8000`)
+2. **Backend Django corriendo** y accesible desde el dispositivo
 
-### Optional Environment Variables
+### Probar en Desarrollo
 
-- `FLET_APP_TITLE`: Application title (default: `GeoQR`)
-- `FLET_DEBUG`: Enable debug mode (default: `false`)
-- `FLET_API_TIMEOUT`: API request timeout in seconds (default: `30`)
-- `FLET_SECURE_STORAGE`: Use secure storage for tokens (default: `true`)
-- `FLET_VERIFY_SSL`: Verify SSL certificates (default: `true`)
-- `FLET_WEBVIEW_JAVASCRIPT_ENABLED`: Enable JavaScript in WebView (default: `true`)
-- `FLET_WEBVIEW_PREVENT_LINK`: Prevent external links (default: `false`)
-- `FLET_CACHE_ENABLED`: Enable resource caching (default: `true`)
-- `FLET_CACHE_SIZE_MB`: Cache size limit in MB (default: `100`)
+1. **Build e instalar la APK**:
+   ```bash
+   # Opción 1: Docker
+   docker compose -f docker-compose.flet.local.yml run --rm flet-build
+   
+   # Opción 2: Manual
+   cd flet_app
+   flet build apk --project geoqr --build-number 1 --build-version 0.1.0
+   ```
 
-### Environment Files
+2. **Instalar en dispositivo**:
+   ```bash
+   # Via ADB
+   adb install build/apk/app-release.apk
+   
+   # O transferir el APK y instalar manualmente
+   ```
 
-Configuration files are stored in `.envs/.local/.flet` (development) and `.envs/.production/.flet` (production).
+3. **Probar cada funcionalidad**:
 
-Example `.envs/.local/.flet`:
+   **a) Escaneo QR (Cámara)**:
+   - Abrir la app
+   - Navegar a la sección de escaneo QR (página `/qr`)
+   - Presionar "Iniciar escaneo"
+   - Android solicitará permiso de cámara (aceptar)
+   - Apuntar a un código QR para escanear
+   - ✅ Verificar que se detecta el código correctamente
+
+   **b) Geolocalización**:
+   - Navegar a la sección de ubicación (página `/geo`)
+   - Presionar "Obtener ubicación"
+   - Android solicitará permiso de ubicación (aceptar)
+   - ✅ Verificar que se muestran las coordenadas y el mapa
+
+   **c) Notificaciones Push**:
+   - Navegar a la sección de notificaciones (página `/push`)
+   - Presionar "Suscribirse"
+   - Android solicitará permiso de notificaciones (aceptar en Android 13+)
+   - Presionar "Enviar prueba"
+   - ✅ Verificar que llega la notificación al dispositivo
+
+### Verificar Permisos Configurados
+
+Verificar que el APK incluye los permisos necesarios:
+
 ```bash
-# Flet Development Configuration
+# Extraer permisos del APK
+aapt dump permissions build/apk/app-release.apk
+
+# Debe incluir:
+# - android.permission.CAMERA
+# - android.permission.ACCESS_FINE_LOCATION
+# - android.permission.ACCESS_COARSE_LOCATION
+# - android.permission.POST_NOTIFICATIONS (Android 13+)
+# - android.permission.INTERNET
+```
+
+### Solución de Problemas
+
+**Problema**: Permisos no solicitados
+- **Solución**: Verificar que `pyproject.toml` incluye todos los permisos
+- Rebuild la APK después de cambios en permisos
+
+**Problema**: Cámara/ubicación no funciona
+- **Solución**: Verificar que JavaScript está habilitado en WebView
+- Verificar que el backend es accesible (CORS configurado)
+
+**Problema**: Notificaciones no llegan
+- **Solución**: Verificar que el Service Worker está registrado
+- Verificar configuración VAPID en el backend
+- En Android 13+, verificar permiso POST_NOTIFICATIONS concedido
+
+## Configuración
+
+Toda la configuración se gestiona a través de variables de entorno para seguridad y flexibilidad:
+
+### Variables de Entorno Requeridas
+
+- `FLET_API_BASE_URL`: URL del API backend de Django (por defecto: `http://django:8000`)
+
+### Variables de Entorno Opcionales
+
+- `FLET_APP_TITLE`: Título de la aplicación (por defecto: `GeoQR`)
+- `FLET_DEBUG`: Habilitar modo debug (por defecto: `false`)
+- `FLET_API_TIMEOUT`: Timeout de peticiones API en segundos (por defecto: `30`)
+- `FLET_SECURE_STORAGE`: Usar almacenamiento seguro para tokens (por defecto: `true`)
+- `FLET_VERIFY_SSL`: Verificar certificados SSL (por defecto: `true`)
+- `FLET_WEBVIEW_JAVASCRIPT_ENABLED`: Habilitar JavaScript en WebView - **requerido para APIs nativas** (por defecto: `true`)
+- `FLET_WEBVIEW_ALLOW_SERVICE_WORKERS`: Habilitar Service Workers - **requerido para PWA y push notifications** (por defecto: `true`)
+- `FLET_WEBVIEW_PREVENT_LINK`: Prevenir enlaces externos (por defecto: `false`)
+- `FLET_CACHE_ENABLED`: Habilitar caché de recursos (por defecto: `true`)
+- `FLET_CACHE_SIZE_MB`: Límite de tamaño de caché en MB (por defecto: `100`)
+
+### Archivos de Entorno
+
+Los archivos de configuración se almacenan en `.envs/.local/.flet` (desarrollo) y `.envs/.production/.flet` (producción).
+
+Ejemplo `.envs/.local/.flet`:
+```bash
+# Configuración de Desarrollo Flet
 FLET_API_BASE_URL=http://django:8000
 FLET_DEBUG=true
 FLET_VERIFY_SSL=false
+FLET_WEBVIEW_JAVASCRIPT_ENABLED=true
+FLET_WEBVIEW_ALLOW_SERVICE_WORKERS=true
 ```
 
-## Deployment Workflow
+## Flujo de Despliegue
 
-### Development Workflow
+### Flujo de Desarrollo
 
-1. **Make code changes** in `flet_app/`
-2. **Test locally** using Docker Compose or Flet CLI
-3. **Build development APK** for testing on devices
-4. **Iterate** based on testing feedback
+1. **Hacer cambios de código** en `flet_app/`
+2. **Probar localmente** usando Docker Compose o Flet CLI
+3. **Build de APK de desarrollo** para probar en dispositivos
+4. **Iterar** basándose en retroalimentación de pruebas
 
-### Production Workflow
+### Flujo de Producción
 
-1. **Ensure all tests pass** and code is reviewed
-2. **Update version numbers** in build configuration
-3. **Build signed AAB** using production Docker Compose
-4. **Upload to Google Play Console** for distribution
-5. **Monitor** crash reports and user feedback
+1. **Asegurar que todas las pruebas pasen** y el código sea revisado
+2. **Actualizar números de versión** en la configuración de build
+3. **Build de AAB firmado** usando Docker Compose de producción
+4. **Subir a Google Play Console** para distribución
+5. **Monitorear** reportes de crashes y retroalimentación de usuarios
 
-## Security Considerations
+## Consideraciones de Seguridad
 
-This application implements security best practices:
+Esta aplicación implementa mejores prácticas de seguridad:
 
-1. **Secure Token Storage**: Authentication tokens are stored using secure client storage
-2. **SSL Verification**: SSL certificates are verified by default (configurable)
-3. **Input Validation**: All user inputs are validated before processing
-4. **Secure Communication**: All API communication uses HTTPS in production
-5. **No Hardcoded Secrets**: All sensitive data is configured via environment variables
-6. **Minimal Permissions**: Android app requests only necessary permissions
-7. **Content Security**: WebView is configured to prevent unauthorized content loading
+1. **Almacenamiento Seguro de Tokens**: Los tokens de autenticación se almacenan usando almacenamiento seguro del cliente
+2. **Verificación SSL**: Los certificados SSL se verifican por defecto (configurable)
+3. **Validación de Entrada**: Todas las entradas de usuario se validan antes del procesamiento
+4. **Comunicación Segura**: Toda comunicación API usa HTTPS en producción
+5. **Sin Secretos Hardcodeados**: Todos los datos sensibles se configuran vía variables de entorno
+6. **Permisos Mínimos**: La app Android solicita solo los permisos necesarios
+7. **Seguridad de Contenido**: WebView está configurado para prevenir carga de contenido no autorizado
 
-### Additional Security Recommendations
+### Recomendaciones de Seguridad Adicionales
 
-- Always use HTTPS in production (`FLET_API_BASE_URL` should use `https://`)
-- Keep `FLET_VERIFY_SSL=true` in production
-- Regularly update dependencies to patch security vulnerabilities
-- Use strong keystore passwords and store them securely
-- Enable ProGuard/R8 for code obfuscation in production builds
-- Implement certificate pinning for critical API endpoints
-- Use encrypted storage for sensitive user data
+- Siempre usar HTTPS en producción (`FLET_API_BASE_URL` debe usar `https://`)
+- Mantener `FLET_VERIFY_SSL=true` en producción
+- Actualizar dependencias regularmente para parchear vulnerabilidades de seguridad
+- Usar contraseñas fuertes de keystore y almacenarlas de forma segura
+- Habilitar ProGuard/R8 para ofuscación de código en builds de producción
+- Implementar certificate pinning para endpoints API críticos
+- Usar almacenamiento cifrado para datos sensibles de usuario
 
-## Testing
+## Pruebas
 
-### Running Tests
+### Ejecutar Pruebas
 
 ```bash
-# Run all tests
+# Ejecutar todas las pruebas
 docker compose -f docker-compose.flet.local.yml run --rm flet pytest
 
-# Run specific test file
+# Ejecutar archivo de prueba específico
 docker compose -f docker-compose.flet.local.yml run --rm flet pytest tests/test_auth.py
 ```
 
-### Manual Testing Checklist
+### Checklist de Pruebas Manuales
 
-- [ ] App launches successfully
-- [ ] WebView loads the Django application
-- [ ] Authentication flow works correctly
-- [ ] Navigation between pages works
-- [ ] Error handling displays appropriate messages
-- [ ] Offline mode works (if enabled)
-- [ ] Push notifications work (if implemented)
-- [ ] App handles network disconnection gracefully
+- [ ] La app se inicia exitosamente
+- [ ] WebView carga la aplicación Django
+- [ ] El flujo de autenticación funciona correctamente
+- [ ] La navegación entre páginas funciona
+- [ ] El manejo de errores muestra mensajes apropiados
+- [ ] El modo offline funciona (si está habilitado)
+- [ ] Las notificaciones push funcionan (si está implementado)
+- [ ] La app maneja desconexión de red elegantemente
 
-## Troubleshooting
+## Solución de Problemas
 
-### Common Issues
+### Problemas Comunes
 
-**Issue**: WebView shows blank screen
-- **Solution**: Check `FLET_API_BASE_URL` is correct and Django server is running
+**Problema**: WebView muestra pantalla en blanco
+- **Solución**: Verificar que `FLET_API_BASE_URL` es correcto y el servidor Django está corriendo
 
-**Issue**: SSL certificate errors
-- **Solution**: For local development, set `FLET_VERIFY_SSL=false`
+**Problema**: Errores de certificado SSL
+- **Solución**: Para desarrollo local, configurar `FLET_VERIFY_SSL=false`
 
-**Issue**: Build fails on Android
-- **Solution**: Ensure Android SDK is properly configured and `ANDROID_HOME` is set
+**Problema**: Build falla en Android
+- **Solución**: Asegurar que Android SDK está configurado correctamente y `ANDROID_HOME` está establecido
 
-**Issue**: App crashes on startup
-- **Solution**: Check logs with `adb logcat` and verify all environment variables are set
+**Problema**: La app crashea al iniciar
+- **Solución**: Revisar logs con `adb logcat` y verificar que todas las variables de entorno están configuradas
 
-### Debug Mode
+### Modo Debug
 
-Enable debug mode for detailed logging:
+Habilitar modo debug para logging detallado:
 ```bash
 export FLET_DEBUG=true
 ```
 
-This will print detailed information about:
-- Page load events
-- API requests and responses
-- Navigation events
-- Error details
+Esto imprimirá información detallada sobre:
+- Eventos de carga de página
+- Peticiones y respuestas API
+- Eventos de navegación
+- Detalles de errores
 
-## Performance Optimization
+## Optimización de Rendimiento
 
-- **Enable caching**: Set `FLET_CACHE_ENABLED=true` to cache resources
-- **Optimize images**: Use appropriate image sizes and formats
-- **Minimize JavaScript**: Enable JavaScript only if required
-- **Use ProGuard**: Enable code shrinking for production builds
-- **Monitor memory**: Profile app to identify memory leaks
+- **Habilitar caché**: Configurar `FLET_CACHE_ENABLED=true` para cachear recursos
+- **Optimizar imágenes**: Usar tamaños y formatos de imagen apropiados
+- **Minimizar JavaScript**: Habilitar JavaScript solo si es requerido
+- **Usar ProGuard**: Habilitar reducción de código para builds de producción
+- **Monitorear memoria**: Perfilar la app para identificar fugas de memoria
 
-## Contributing
+## Contribuir
 
-When contributing to the Flet app:
+Al contribuir a la app Flet:
 
-1. Follow the existing code structure and naming conventions
-2. Add docstrings to all functions and classes
-3. Include type hints for better code maintainability
-4. Test on multiple Android versions and screen sizes
-5. Update documentation for any new features
-6. Ensure security best practices are followed
+1. Seguir la estructura de código y convenciones de nombres existentes
+2. Agregar docstrings a todas las funciones y clases
+3. Incluir type hints para mejor mantenibilidad del código
+4. Probar en múltiples versiones de Android y tamaños de pantalla
+5. Actualizar documentación para cualquier nueva característica
+6. Asegurar que se siguen las mejores prácticas de seguridad
 
-## Resources
+## Recursos
 
-- [Flet Documentation](https://flet.dev/)
-- [Flet GitHub Repository](https://github.com/flet-dev/flet)
-- [Android Developer Guide](https://developer.android.com/)
+- [Documentación de Flet](https://flet.dev/)
+- [Repositorio GitHub de Flet](https://github.com/flet-dev/flet)
+- [Guía de Desarrollador Android](https://developer.android.com/)
 - [Django REST Framework](https://www.django-rest-framework.org/)
 
-## Support
+## Soporte
 
-For issues or questions:
-1. Check this documentation first
-2. Review existing GitHub issues
-3. Create a new issue with detailed description and logs
-4. Contact the development team
+Para problemas o preguntas:
+1. Revisar primero esta documentación
+2. Revisar issues existentes en GitHub
+3. Crear un nuevo issue con descripción detallada y logs
+4. Contactar al equipo de desarrollo
 
-## License
+## Licencia
 
-Not open source - See LICENSE file for details.
+No es código abierto - Ver archivo LICENSE para detalles.
