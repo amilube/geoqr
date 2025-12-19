@@ -43,7 +43,11 @@ class WebViewPage(ft.UserControl):
         # Create loading indicator
         self.loading = ft.ProgressRing(visible=True)
 
-        # Create WebView control
+        # Create WebView control with native device support
+        # Configuración para soportar APIs nativas del dispositivo:
+        # - Geolocalización API
+        # - Camera/MediaDevices API (para escaneo QR)
+        # - Notifications API (para push notifications)
         self.webview = ft.WebView(
             url=self.url,
             expand=True,

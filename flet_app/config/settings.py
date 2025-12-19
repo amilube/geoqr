@@ -19,12 +19,21 @@ API_TIMEOUT = int(os.getenv("FLET_API_TIMEOUT", "30"))
 SECURE_STORAGE = os.getenv("FLET_SECURE_STORAGE", "True").lower() == "true"
 VERIFY_SSL = os.getenv("FLET_VERIFY_SSL", "True").lower() == "true"
 
-# WebView settings
+# WebView settings para soportar funcionalidades nativas
+# JavaScript debe estar habilitado para que funcionen las APIs de:
+# - Geolocalización (navigator.geolocation)
+# - Cámara/MediaDevices (navigator.mediaDevices para escaneo QR)
+# - Notificaciones Push (Service Worker + Push API)
 WEBVIEW_JAVASCRIPT_ENABLED = (
     os.getenv("FLET_WEBVIEW_JAVASCRIPT_ENABLED", "True").lower() == "true"
 )
 WEBVIEW_PREVENT_LINK = (
     os.getenv("FLET_WEBVIEW_PREVENT_LINK", "False").lower() == "true"
+)
+
+# Soporte para Service Workers (necesario para PWA y notificaciones push)
+WEBVIEW_ALLOW_SERVICE_WORKERS = (
+    os.getenv("FLET_WEBVIEW_ALLOW_SERVICE_WORKERS", "True").lower() == "true"
 )
 
 # Cache settings

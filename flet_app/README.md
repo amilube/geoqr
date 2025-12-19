@@ -4,7 +4,33 @@ This directory contains the Flet-based frontend application for wrapping the Geo
 
 ## Overview
 
-The Flet app provides a native Android container that embeds the existing Django web application in a WebView, allowing seamless deployment to Android devices while maintaining the full functionality of the web application.
+The Flet app provides a native Android container that embeds the existing Django web application in a WebView, allowing seamless deployment to Android devices while maintaining the full functionality of the web application, **including native device features**.
+
+## Funcionalidades Nativas Soportadas
+
+La aplicación Android (flet_app) expone las siguientes APIs nativas del dispositivo a la webapp:
+
+### 📸 Cámara (QR Scanner)
+- **API Web**: `navigator.mediaDevices.getUserMedia()`
+- **Permiso Android**: `CAMERA`
+- **Uso**: Escaneo de códigos QR usando la librería Html5Qrcode
+- **Prueba**: Ir a `/qr` en la webapp dentro de la app
+
+### 📍 Geolocalización
+- **API Web**: `navigator.geolocation.getCurrentPosition()`
+- **Permisos Android**: `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`
+- **Uso**: Obtener ubicación actual del dispositivo
+- **Prueba**: Ir a `/geo` en la webapp dentro de la app
+
+### 🔔 Notificaciones Push
+- **API Web**: Service Worker + Push API + Notifications API
+- **Permiso Android**: `POST_NOTIFICATIONS` (Android 13+)
+- **Uso**: Suscripción y recepción de notificaciones push
+- **Prueba**: Ir a `/push` en la webapp dentro de la app
+
+### 🌐 Conectividad
+- **Permisos Android**: `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`
+- **Uso**: Comunicación con el backend Django y funcionamiento de PWA
 
 ## Architecture
 
@@ -15,6 +41,7 @@ flet_app/
 ├── views/           # UI components and screens
 ├── assets/          # Static assets (images, icons, etc.)
 ├── main.py          # Application entry point
+├── pyproject.toml   # Flet build configuration with Android permissions
 ├── requirements.txt # Python dependencies
 └── README.md        # This file
 ```
@@ -22,6 +49,8 @@ flet_app/
 ## Features
 
 - **WebView Integration**: Embeds the Django web application in a native WebView
+- **Native Device APIs**: Full support for camera, geolocation, and push notifications
+- **PWA Compatible**: Works as standalone PWA or within the Android app
 - **Secure Authentication**: Handles token-based authentication with secure storage
 - **Offline Capability**: Caches resources for offline use (when configured)
 - **Error Handling**: Graceful error handling with user-friendly messages
@@ -117,6 +146,92 @@ flet_app/
 
    The AAB will be available at: `build/aab/app-release.aab`
 
+## Testing Native Features
+
+### Prerequisitos para Testing
+
+1. **Dispositivo Android físico o emulador** con:
+   - Android 8.0+ (API 26+)
+   - Android 13+ (API 33+) para notificaciones push
+   - Cámara funcional (para QR scanner)
+   - GPS habilitado (para geolocalización)
+
+2. **Backend Django corriendo** y accesible desde el dispositivo
+
+### Probar en Desarrollo
+
+1. **Build e instalar la APK**:
+   ```bash
+   # Opción 1: Docker
+   docker compose -f docker-compose.flet.local.yml run --rm flet-build
+   
+   # Opción 2: Manual
+   cd flet_app
+   flet build apk --project geoqr --build-number 1 --build-version 0.1.0
+   ```
+
+2. **Instalar en dispositivo**:
+   ```bash
+   # Via ADB
+   adb install build/apk/app-release.apk
+   
+   # O transferir el APK y instalar manualmente
+   ```
+
+3. **Probar cada funcionalidad**:
+
+   **a) Escaneo QR (Cámara)**:
+   - Abrir la app
+   - Navegar a la sección de escaneo QR (página `/qr`)
+   - Presionar "Iniciar escaneo"
+   - Android solicitará permiso de cámara (aceptar)
+   - Apuntar a un código QR para escanear
+   - ✅ Verificar que se detecta el código correctamente
+
+   **b) Geolocalización**:
+   - Navegar a la sección de ubicación (página `/geo`)
+   - Presionar "Obtener ubicación"
+   - Android solicitará permiso de ubicación (aceptar)
+   - ✅ Verificar que se muestran las coordenadas y el mapa
+
+   **c) Notificaciones Push**:
+   - Navegar a la sección de notificaciones (página `/push`)
+   - Presionar "Suscribirse"
+   - Android solicitará permiso de notificaciones (aceptar en Android 13+)
+   - Presionar "Enviar prueba"
+   - ✅ Verificar que llega la notificación al dispositivo
+
+### Verificar Permisos Configurados
+
+Verificar que el APK incluye los permisos necesarios:
+
+```bash
+# Extraer permisos del APK
+aapt dump permissions build/apk/app-release.apk
+
+# Debe incluir:
+# - android.permission.CAMERA
+# - android.permission.ACCESS_FINE_LOCATION
+# - android.permission.ACCESS_COARSE_LOCATION
+# - android.permission.POST_NOTIFICATIONS (Android 13+)
+# - android.permission.INTERNET
+```
+
+### Troubleshooting
+
+**Problema**: Permisos no solicitados
+- **Solución**: Verificar que `pyproject.toml` incluye todos los permisos
+- Rebuild la APK después de cambios en permisos
+
+**Problema**: Cámara/ubicación no funciona
+- **Solución**: Verificar que JavaScript está habilitado en WebView
+- Verificar que el backend es accesible (CORS configurado)
+
+**Problema**: Notificaciones no llegan
+- **Solución**: Verificar que el Service Worker está registrado
+- Verificar configuración VAPID en el backend
+- En Android 13+, verificar permiso POST_NOTIFICATIONS concedido
+
 ## Configuration
 
 All configuration is managed through environment variables for security and flexibility:
@@ -132,7 +247,8 @@ All configuration is managed through environment variables for security and flex
 - `FLET_API_TIMEOUT`: API request timeout in seconds (default: `30`)
 - `FLET_SECURE_STORAGE`: Use secure storage for tokens (default: `true`)
 - `FLET_VERIFY_SSL`: Verify SSL certificates (default: `true`)
-- `FLET_WEBVIEW_JAVASCRIPT_ENABLED`: Enable JavaScript in WebView (default: `true`)
+- `FLET_WEBVIEW_JAVASCRIPT_ENABLED`: Enable JavaScript in WebView - **requerido para APIs nativas** (default: `true`)
+- `FLET_WEBVIEW_ALLOW_SERVICE_WORKERS`: Enable Service Workers - **requerido para PWA y push notifications** (default: `true`)
 - `FLET_WEBVIEW_PREVENT_LINK`: Prevent external links (default: `false`)
 - `FLET_CACHE_ENABLED`: Enable resource caching (default: `true`)
 - `FLET_CACHE_SIZE_MB`: Cache size limit in MB (default: `100`)
@@ -147,6 +263,8 @@ Example `.envs/.local/.flet`:
 FLET_API_BASE_URL=http://django:8000
 FLET_DEBUG=true
 FLET_VERIFY_SSL=false
+FLET_WEBVIEW_JAVASCRIPT_ENABLED=true
+FLET_WEBVIEW_ALLOW_SERVICE_WORKERS=true
 ```
 
 ## Deployment Workflow
