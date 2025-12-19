@@ -80,7 +80,7 @@ FLET_CACHE_ENABLED=true
 
 #### Production: `.envs/.production/.flet.example`
 ```bash
-FLET_API_BASE_URL=https://your-production-domain.com
+FLET_API_BASE_URL=https://geoqr.dumanity.com
 FLET_DEBUG=false
 FLET_VERIFY_SSL=true
 FLET_SECURE_STORAGE=true

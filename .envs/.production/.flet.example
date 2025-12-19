@@ -7,8 +7,8 @@ FLET_APP_TITLE=GeoQR
 FLET_DEBUG=false
 
 # Backend API Configuration
-# IMPORTANTE: Actualizar con la URL de producción
-FLET_API_BASE_URL=https://your-production-domain.com
+# URL de producción de la PWA Django
+FLET_API_BASE_URL=https://geoqr.dumanity.com
 FLET_API_TIMEOUT=30
 
 # Security Settings

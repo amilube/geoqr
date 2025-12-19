@@ -25,6 +25,19 @@ def create_webview_page(page: ft.Page, url: str) -> ft.Container:
     """
     # Crear indicador de carga
     loading = ft.ProgressRing(visible=True)
+    
+    # Crear control WebView primero (necesario para las callbacks)
+    # Configuración para soportar APIs nativas del dispositivo:
+    # - Geolocalización API (navigator.geolocation)
+    # - Camera/MediaDevices API (navigator.mediaDevices para escaneo QR)
+    # - Notifications API (para push notifications)
+    # - Service Workers (habilitados automáticamente con JavaScript + HTTPS/localhost)
+    webview = ft.WebView(
+        url=url,
+        expand=True,
+        javascript_enabled=WEBVIEW_JAVASCRIPT_ENABLED,
+        prevent_link=WEBVIEW_PREVENT_LINK,
+    )
 
     def on_page_started(e: ft.ControlEvent) -> None:
         """Manejar evento de inicio de carga de página."""
@@ -68,22 +81,11 @@ def create_webview_page(page: ft.Page, url: str) -> ft.Container:
         page.dialog.open = True
         loading.visible = False
         page.update()
-
-    # Crear control WebView con soporte para dispositivo nativo
-    # Configuración para soportar APIs nativas del dispositivo:
-    # - Geolocalización API (navigator.geolocation)
-    # - Camera/MediaDevices API (navigator.mediaDevices para escaneo QR)
-    # - Notifications API (para push notifications)
-    # - Service Workers (habilitados automáticamente con JavaScript + HTTPS/localhost)
-    webview = ft.WebView(
-        url=url,
-        expand=True,
-        javascript_enabled=WEBVIEW_JAVASCRIPT_ENABLED,
-        prevent_link=WEBVIEW_PREVENT_LINK,
-        on_page_started=on_page_started,
-        on_page_ended=on_page_ended,
-        on_web_resource_error=on_web_resource_error,
-    )
+    
+    # Asignar los event handlers después de definirlos
+    webview.on_page_started = on_page_started
+    webview.on_page_ended = on_page_ended
+    webview.on_web_resource_error = on_web_resource_error
 
     # Crear contenedor principal
     return ft.Container(
