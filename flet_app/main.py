@@ -10,7 +10,7 @@ import flet as ft
 from flet_app.config.settings import API_BASE_URL
 from flet_app.config.settings import APP_TITLE
 from flet_app.config.settings import DEBUG
-from flet_app.views.webview import WebViewPage
+from flet_app.views.webview import create_webview_page
 
 
 def main(page: ft.Page) -> None:
@@ -30,8 +30,8 @@ def main(page: ft.Page) -> None:
     page.window_prevent_close = False
 
     # Agregar la página webview
-    webview_page = WebViewPage(page, API_BASE_URL)
-    page.add(webview_page)
+    webview_container = create_webview_page(page, API_BASE_URL)
+    page.add(webview_container)
 
     # Actualizar la página
     page.update()
@@ -42,4 +42,11 @@ def main(page: ft.Page) -> None:
 
 if __name__ == "__main__":
     # Ejecutar la app Flet
-    ft.app(target=main)
+    # For web mode, use view parameter
+    import os
+    
+    port = int(os.getenv("FLET_PORT", "8550"))
+    host = os.getenv("FLET_HOST", "0.0.0.0")
+    
+    # Run in web mode for development
+    ft.app(target=main, port=port, host=host, view=ft.AppView.WEB_BROWSER)
