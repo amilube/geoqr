@@ -5,6 +5,42 @@ App para testear funcionalidades en Android
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
+## Flet Android App
+
+This project includes a Flet-based Android frontend that wraps the Django web application for native Android deployment. The `flet_app` is an independent project located at the root of the repository.
+
+### Quick Start (3 commands)
+
+```bash
+# 1. Start development
+./flet.sh dev
+
+# 2. Build APK for testing
+./flet.sh build
+
+# 3. Stop when done
+./flet.sh stop
+```
+
+Access points:
+- Django Backend: http://localhost:8000
+- Flet Web View: http://localhost:8550
+
+### Using `just` (alternative)
+
+```bash
+just all           # Start Django + Flet
+just flet-build    # Build APK
+just down          # Stop services
+```
+
+### Documentation
+
+- **[Quick Start Guide](FLET_QUICKSTART.md)** - Ultra-simplified workflow (in Spanish)
+- **[Flet App README](flet_app/README.md)** - Detailed Flet app documentation
+- **[Deployment Guide](FLET_DEPLOYMENT_GUIDE.md)** - Complete development and deployment workflow
+- **[Security Guide](FLET_SECURITY.md)** - Security best practices
+
 ## Settings
 
 Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).

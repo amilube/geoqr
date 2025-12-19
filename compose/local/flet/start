@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+echo "Starting Flet app in development mode..."
+
+# Change to the flet app directory
+cd /app/flet_app
+
+# Run Flet in web mode for development
+# This allows viewing the app in a browser during development
+exec flet run --web --port 8550 main.py

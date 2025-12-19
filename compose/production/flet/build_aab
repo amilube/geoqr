@@ -1,0 +1,47 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+echo "Building Flet Android AAB (App Bundle) for production..."
+
+# Change to the flet app directory
+cd /app/flet_app
+
+# Build configuration from environment variables
+BUILD_NUMBER=${BUILD_NUMBER:-1}
+BUILD_VERSION=${BUILD_VERSION:-1.0.0}
+PROJECT_NAME=${PROJECT_NAME:-geoqr}
+
+# Keystore configuration (required for signed builds)
+KEY_STORE=${KEY_STORE:-}
+KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD:-}
+KEY_ALIAS=${KEY_ALIAS:-}
+KEY_PASSWORD=${KEY_PASSWORD:-}
+
+echo "Building AAB - Project: $PROJECT_NAME, Version: $BUILD_VERSION, Build: $BUILD_NUMBER"
+
+# Build command
+BUILD_CMD="flet build aab --project $PROJECT_NAME --build-number $BUILD_NUMBER --build-version $BUILD_VERSION --verbose"
+
+# Add signing configuration if provided
+if [ -n "$KEY_STORE" ] && [ -n "$KEY_STORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+    echo "Building signed AAB with keystore: $KEY_STORE"
+    BUILD_CMD="$BUILD_CMD --key-store $KEY_STORE --key-store-password $KEY_STORE_PASSWORD --key-alias $KEY_ALIAS --key-password $KEY_PASSWORD"
+else
+    echo "Warning: Building unsigned AAB. Provide keystore configuration for signed builds."
+fi
+
+# Execute build
+eval "$BUILD_CMD"
+
+echo "AAB build completed!"
+echo "Output: build/aab/app-release.aab"
+
+# Copy to output directory if specified
+if [ -n "${OUTPUT_DIR:-}" ]; then
+    echo "Copying AAB to $OUTPUT_DIR"
+    mkdir -p "$OUTPUT_DIR"
+    cp build/aab/app-release.aab "$OUTPUT_DIR/"
+fi
