@@ -1,0 +1,46 @@
+volumes:
+  flet_local_data: {}
+
+services:
+  flet:
+    build:
+      context: .
+      dockerfile: ./compose/local/flet/Dockerfile
+    image: geoqr_local_flet
+    container_name: geoqr_local_flet
+    depends_on:
+      - django
+    volumes:
+      - ./apps/flet_app:/app/apps/flet_app:z
+    env_file:
+      - ./.envs/.local/.flet
+    ports:
+      - '8550:8550'
+    command: /start
+    networks:
+      - default
+
+  flet-build:
+    build:
+      context: .
+      dockerfile: ./compose/local/flet/Dockerfile
+    image: geoqr_local_flet_build
+    container_name: geoqr_local_flet_build
+    volumes:
+      - ./apps/flet_app:/app/apps/flet_app:z
+      - ./build/flet:/app/apps/flet_app/build:z
+    env_file:
+      - ./.envs/.local/.flet
+    environment:
+      - BUILD_NUMBER=${BUILD_NUMBER:-1}
+      - BUILD_VERSION=${BUILD_VERSION:-0.1.0}
+    command: /app/compose/local/flet/build_apk
+    networks:
+      - default
+    profiles:
+      - build
+
+networks:
+  default:
+    name: geoqr_local_network
+    external: false

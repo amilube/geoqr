@@ -1,0 +1,24 @@
+# Flet Local Development Environment Configuration
+# This file contains environment variables for local development of the Flet Android app
+
+# Application Settings
+FLET_APP_TITLE=GeoQR
+FLET_DEBUG=true
+
+# Backend API Configuration
+# Point to the local Django container
+FLET_API_BASE_URL=http://django:8000
+FLET_API_TIMEOUT=30
+
+# Security Settings
+FLET_SECURE_STORAGE=true
+# Disable SSL verification for local development
+FLET_VERIFY_SSL=false
+
+# WebView Settings
+FLET_WEBVIEW_JAVASCRIPT_ENABLED=true
+FLET_WEBVIEW_PREVENT_LINK=false
+
+# Cache Settings
+FLET_CACHE_ENABLED=true
+FLET_CACHE_SIZE_MB=100

@@ -5,6 +5,37 @@ App para testear funcionalidades en Android
 [![Built with Cookiecutter Django](https://img.shields.io/badge/built%20with-Cookiecutter%20Django-ff69b4.svg?logo=cookiecutter)](https://github.com/cookiecutter/cookiecutter-django/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
+## Flet Android App
+
+This project includes a Flet-based Android frontend that wraps the Django web application for native Android deployment.
+
+### Quick Start
+
+Start the development environment with both Django and Flet:
+
+```bash
+docker-compose -f docker-compose.local.yml -f docker-compose.flet.local.yml up
+```
+
+Access points:
+- Django Backend: http://localhost:8000
+- Flet Web View: http://localhost:8550
+
+### Documentation
+
+- **[Flet App README](apps/flet_app/README.md)** - Detailed Flet app documentation
+- **[Deployment Guide](FLET_DEPLOYMENT_GUIDE.md)** - Complete development and deployment workflow
+
+### Building for Android
+
+```bash
+# Development APK
+docker-compose -f docker-compose.flet.local.yml --profile build run --rm flet-build
+
+# Production AAB (for Google Play)
+docker-compose -f docker-compose.flet.production.yml --profile build-release run --rm flet-build-release
+```
+
 ## Settings
 
 Moved to [settings](https://cookiecutter-django.readthedocs.io/en/latest/1-getting-started/settings.html).

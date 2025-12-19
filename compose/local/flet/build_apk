@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+echo "Building Flet Android APK..."
+
+# Change to the flet app directory
+cd /app/apps/flet_app
+
+# Install Android SDK if not present (for build container)
+if [ ! -d "$ANDROID_HOME" ]; then
+    echo "Installing Android SDK..."
+    # This would typically be pre-installed in the build image
+    # For now, just inform the user
+    echo "Warning: Android SDK not found. Please ensure it's installed."
+fi
+
+# Build APK
+# Build number and version should be passed as environment variables
+BUILD_NUMBER=${BUILD_NUMBER:-1}
+BUILD_VERSION=${BUILD_VERSION:-0.1.0}
+
+echo "Building APK - Version: $BUILD_VERSION, Build: $BUILD_NUMBER"
+
+flet build apk \
+    --project geoqr \
+    --build-number "$BUILD_NUMBER" \
+    --build-version "$BUILD_VERSION" \
+    --verbose
+
+echo "APK build completed!"
+echo "Output location: build/apk/"

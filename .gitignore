@@ -276,3 +276,19 @@ apps/media/
 .env
 .envs/*
 !.envs/.local/
+
+### Flet template
+# Flet build artifacts
+apps/flet_app/build/
+apps/flet_app/.flet/
+build/flet/
+
+# Flet production env (contains secrets)
+.envs/.production/.flet
+
+# Android keystore (contains signing keys)
+*.jks
+*.keystore
+
+# Flet cache
+.flet_cache/

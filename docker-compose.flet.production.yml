@@ -1,0 +1,48 @@
+volumes:
+  flet_production_builds: {}
+
+services:
+  flet-build-apk:
+    build:
+      context: .
+      dockerfile: ./compose/production/flet/Dockerfile
+    image: geoqr_production_flet_build
+    container_name: geoqr_production_flet_build_apk
+    volumes:
+      - ./apps/flet_app:/app/apps/flet_app:ro
+      - ./build/flet/production:/output:z
+    env_file:
+      - ./.envs/.production/.flet
+    environment:
+      - BUILD_NUMBER=${BUILD_NUMBER:-1}
+      - BUILD_VERSION=${BUILD_VERSION:-1.0.0}
+      - PROJECT_NAME=${PROJECT_NAME:-geoqr}
+      - OUTPUT_DIR=/output
+    command: /build_apk
+    profiles:
+      - build-apk
+
+  flet-build-release:
+    build:
+      context: .
+      dockerfile: ./compose/production/flet/Dockerfile
+    image: geoqr_production_flet_build
+    container_name: geoqr_production_flet_build_aab
+    volumes:
+      - ./apps/flet_app:/app/apps/flet_app:ro
+      - ./build/flet/production:/output:z
+      - ${KEYSTORE_PATH:-./keystore.jks}:/keystore.jks:ro
+    env_file:
+      - ./.envs/.production/.flet
+    environment:
+      - BUILD_NUMBER=${BUILD_NUMBER:-1}
+      - BUILD_VERSION=${BUILD_VERSION:-1.0.0}
+      - PROJECT_NAME=${PROJECT_NAME:-geoqr}
+      - KEY_STORE=/keystore.jks
+      - KEY_STORE_PASSWORD=${KEY_STORE_PASSWORD}
+      - KEY_ALIAS=${KEY_ALIAS}
+      - KEY_PASSWORD=${KEY_PASSWORD}
+      - OUTPUT_DIR=/output
+    command: /build_aab
+    profiles:
+      - build-release

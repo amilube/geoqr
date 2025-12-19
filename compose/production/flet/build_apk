@@ -1,0 +1,34 @@
+#!/bin/bash
+
+set -o errexit
+set -o pipefail
+set -o nounset
+
+echo "Building Flet Android APK for production..."
+
+# Change to the flet app directory
+cd /app/apps/flet_app
+
+# Build configuration from environment variables
+BUILD_NUMBER=${BUILD_NUMBER:-1}
+BUILD_VERSION=${BUILD_VERSION:-1.0.0}
+PROJECT_NAME=${PROJECT_NAME:-geoqr}
+
+echo "Building APK - Project: $PROJECT_NAME, Version: $BUILD_VERSION, Build: $BUILD_NUMBER"
+
+# Build the APK
+flet build apk \
+    --project "$PROJECT_NAME" \
+    --build-number "$BUILD_NUMBER" \
+    --build-version "$BUILD_VERSION" \
+    --verbose
+
+echo "APK build completed!"
+echo "Output: build/apk/app-release.apk"
+
+# Copy to output directory if specified
+if [ -n "${OUTPUT_DIR:-}" ]; then
+    echo "Copying APK to $OUTPUT_DIR"
+    mkdir -p "$OUTPUT_DIR"
+    cp build/apk/app-release.apk "$OUTPUT_DIR/"
+fi

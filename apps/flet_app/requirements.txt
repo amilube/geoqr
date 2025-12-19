@@ -1,0 +1,11 @@
+# Flet Android Frontend Requirements
+# This file contains dependencies specific to the Flet Android application
+
+# Core Flet framework
+flet>=0.25.0
+
+# HTTP client for API communication
+httpx>=0.28.1
+
+# Additional utilities
+python-dotenv>=1.0.0
