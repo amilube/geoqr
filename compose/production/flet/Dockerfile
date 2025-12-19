@@ -18,13 +18,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     wget \
     unzip \
+    # SSL certificates for pip
+    ca-certificates \
     # Build dependencies
     build-essential \
     # Java (required for Android builds)
     openjdk-17-jdk \
     # Clean up
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && update-ca-certificates
 
 # Install Android SDK command line tools
 RUN mkdir -p ${ANDROID_HOME}/cmdline-tools && \
@@ -48,9 +51,12 @@ RUN yes | sdkmanager --licenses && \
 # Set working directory
 WORKDIR /app
 
+# Upgrade pip and install certificates (with SSL workaround for build environments)
+RUN pip install --upgrade --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pip setuptools certifi
+
 # Install Flet and dependencies
 COPY flet_app/requirements.txt /app/flet_requirements.txt
-RUN pip install --no-cache-dir -r /app/flet_requirements.txt
+RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r /app/flet_requirements.txt
 
 # Copy application code
 COPY flet_app /app/flet_app

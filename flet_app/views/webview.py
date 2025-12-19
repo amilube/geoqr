@@ -12,127 +12,93 @@ from flet_app.config.settings import WEBVIEW_JAVASCRIPT_ENABLED
 from flet_app.config.settings import WEBVIEW_PREVENT_LINK
 
 
-class WebViewPage(ft.UserControl):
+def create_webview_page(page: ft.Page, url: str) -> ft.Container:
     """
-    Componente de página WebView.
+    Crear el componente WebView.
 
-    Este componente envuelve la aplicación web Django en un control WebView de Flet,
-    proporcionando integración perfecta entre la web app y el contenedor Android.
+    Args:
+        page: La instancia de página Flet.
+        url: La URL de la aplicación web Django a cargar.
+
+    Returns:
+        Un contenedor con el control WebView.
     """
+    # Crear indicador de carga
+    loading = ft.ProgressRing(visible=True)
+    
+    # Crear control WebView primero (necesario para las callbacks)
+    # Configuración para soportar APIs nativas del dispositivo:
+    # - Geolocalización API (navigator.geolocation)
+    # - Camera/MediaDevices API (navigator.mediaDevices para escaneo QR)
+    # - Notifications API (para push notifications)
+    # - Service Workers (habilitados automáticamente con JavaScript + HTTPS/localhost)
+    webview = ft.WebView(
+        url=url,
+        expand=True,
+        javascript_enabled=WEBVIEW_JAVASCRIPT_ENABLED,
+        prevent_link=WEBVIEW_PREVENT_LINK,
+    )
 
-    def __init__(self, page: ft.Page, url: str) -> None:
-        """
-        Inicializar la página WebView.
-
-        Args:
-            page: La instancia de página Flet.
-            url: La URL de la aplicación web Django a cargar.
-        """
-        super().__init__()
-        self.page = page
-        self.url = url
-        self.webview: ft.WebView | None = None
-
-    def build(self) -> ft.Container:
-        """
-        Construir el componente WebView.
-
-        Returns:
-            Un contenedor con el control WebView.
-        """
-        # Crear indicador de carga
-        self.loading = ft.ProgressRing(visible=True)
-
-        # Crear control WebView con soporte para dispositivo nativo
-        # Configuración para soportar APIs nativas del dispositivo:
-        # - Geolocalización API (navigator.geolocation)
-        # - Camera/MediaDevices API (navigator.mediaDevices para escaneo QR)
-        # - Notifications API (para push notifications)
-        # - Service Workers (habilitados automáticamente con JavaScript + HTTPS/localhost)
-        self.webview = ft.WebView(
-            url=self.url,
-            expand=True,
-            javascript_enabled=WEBVIEW_JAVASCRIPT_ENABLED,
-            prevent_link=WEBVIEW_PREVENT_LINK,
-            on_page_started=self._on_page_started,
-            on_page_ended=self._on_page_ended,
-            on_web_resource_error=self._on_web_resource_error,
-        )
-
-        # Crear contenedor principal
-        return ft.Container(
-            content=ft.Stack(
-                [
-                    self.webview,
-                    ft.Container(
-                        content=self.loading,
-                        alignment=ft.alignment.center,
-                    ),
-                ],
-                expand=True,
-            ),
-            expand=True,
-            padding=0,
-        )
-
-    def _on_page_started(self, e: ft.ControlEvent) -> None:
-        """
-        Manejar evento de inicio de carga de página.
-
-        Args:
-            e: El evento de control.
-        """
+    def on_page_started(e: ft.ControlEvent) -> None:
+        """Manejar evento de inicio de carga de página."""
         if DEBUG:
             print(f"Página comenzó a cargar: {e.data}")
-        self.loading.visible = True
-        self.update()
+        loading.visible = True
+        page.update()
 
-    def _on_page_ended(self, e: ft.ControlEvent) -> None:
-        """
-        Manejar evento de fin de carga de página.
-
-        Args:
-            e: El evento de control.
-        """
+    def on_page_ended(e: ft.ControlEvent) -> None:
+        """Manejar evento de fin de carga de página."""
         if DEBUG:
             print(f"Página terminó de cargar: {e.data}")
-        self.loading.visible = False
-        self.update()
+        loading.visible = False
+        page.update()
 
-    def _on_web_resource_error(self, e: ft.ControlEvent) -> None:
-        """
-        Manejar error de recurso web.
-
-        Args:
-            e: El evento de control.
-        """
+    def on_web_resource_error(e: ft.ControlEvent) -> None:
+        """Manejar error de recurso web."""
         error_message = f"Error cargando página: {e.data}"
         if DEBUG:
             print(error_message)
 
+        def close_dialog(_):
+            page.dialog.open = False
+            page.update()
+
+        def retry_load(_):
+            page.dialog.open = False
+            webview.url = url
+            loading.visible = True
+            page.update()
+
         # Mostrar diálogo de error
-        self.page.dialog = ft.AlertDialog(
+        page.dialog = ft.AlertDialog(
             title=ft.Text("Error"),
             content=ft.Text(error_message),
             actions=[
-                ft.TextButton("OK", on_click=lambda _: self._close_dialog()),
-                ft.TextButton("Reintentar", on_click=lambda _: self._retry_load()),
+                ft.TextButton("OK", on_click=close_dialog),
+                ft.TextButton("Reintentar", on_click=retry_load),
             ],
         )
-        self.page.dialog.open = True
-        self.loading.visible = False
-        self.update()
+        page.dialog.open = True
+        loading.visible = False
+        page.update()
+    
+    # Asignar los event handlers después de definirlos
+    webview.on_page_started = on_page_started
+    webview.on_page_ended = on_page_ended
+    webview.on_web_resource_error = on_web_resource_error
 
-    def _close_dialog(self) -> None:
-        """Cerrar el diálogo de error."""
-        if self.page.dialog:
-            self.page.dialog.open = False
-            self.page.update()
-
-    def _retry_load(self) -> None:
-        """Reintentar cargar la página."""
-        self._close_dialog()
-        if self.webview:
-            self.webview.url = self.url
-            self.loading.visible = True
-            self.update()
+    # Crear contenedor principal
+    return ft.Container(
+        content=ft.Stack(
+            [
+                webview,
+                ft.Container(
+                    content=loading,
+                    alignment=ft.alignment.center,
+                ),
+            ],
+            expand=True,
+        ),
+        expand=True,
+        padding=0,
+    )
